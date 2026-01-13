@@ -200,8 +200,22 @@ const pillars: Pillar[] = [
   {
     name: 'Performance Efficiency',
     description: 'Use computing resources efficiently to meet requirements and maintain efficiency',
-    score: 70,
+    score: 85,
     findings: [
+      {
+        title: 'Performance Monitoring',
+        status: 'good',
+        current: 'CloudWatch alarms for latency (>1s), 5xx errors (>10/5min), DB CPU (>80%), storage (<5GB), connections (>80)',
+        recommendation: 'Comprehensive monitoring enables proactive performance management',
+        priority: 'Low'
+      },
+      {
+        title: 'Database Performance Insights',
+        status: 'good',
+        current: 'RDS Performance Insights enabled with 7-day retention (free tier)',
+        recommendation: 'Use Performance Insights to identify slow queries and bottlenecks',
+        priority: 'Low'
+      },
       {
         title: 'CDN Caching',
         status: 'good',
@@ -226,7 +240,7 @@ const pillars: Pillar[] = [
       {
         title: 'ECS Task Sizing',
         status: 'info',
-        current: '256 CPU units, 512 MB memory',
+        current: '256 CPU units, 512 MB memory with Container Insights enabled',
         recommendation: 'Monitor resource utilization and adjust based on actual usage patterns',
         priority: 'Low'
       },
@@ -239,9 +253,9 @@ const pillars: Pillar[] = [
       },
       {
         title: 'Connection Pooling',
-        status: 'warning',
-        current: 'No RDS Proxy configured',
-        recommendation: 'Add RDS Proxy if connection management becomes an issue at scale',
+        status: 'info',
+        current: 'No RDS Proxy configured; connection alarm at 80 connections',
+        recommendation: 'Add RDS Proxy if connection limit is reached at scale',
         priority: 'Low'
       }
     ]
@@ -407,6 +421,8 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
         <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <h4 class="font-semibold text-green-800 mb-2">Recent Improvements</h4>
           <ul class="text-sm text-green-700 space-y-1">
+            <li>✓ CloudWatch alarms for latency, errors, DB CPU, storage, and connections</li>
+            <li>✓ RDS Performance Insights enabled (7-day retention)</li>
             <li>✓ Security headers policy (HSTS, CSP, X-Frame-Options, XSS-Protection, Referrer-Policy)</li>
             <li>✓ RDS Multi-AZ deployment enabled for automatic failover</li>
             <li>✓ ECS task count increased to 2 with auto-scaling (2-10 tasks)</li>
@@ -543,6 +559,14 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
           <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
             <CheckCircle class="h-5 w-5 text-green-600" />
             <span class="text-sm">Security headers (HSTS, CSP, X-Frame-Options, XSS-Protection)</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">CloudWatch alarms for performance monitoring</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">RDS Performance Insights enabled</span>
           </div>
           <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
             <AlertTriangle class="h-5 w-5 text-yellow-600" />

@@ -13,6 +13,7 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as appscaling from 'aws-cdk-lib/aws-applicationautoscaling';
+import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -100,6 +101,9 @@ export class InfraStack extends cdk.Stack {
       deleteAutomatedBackups: false, // Retain backups on deletion
       backupRetention: cdk.Duration.days(7), // 7-day backup retention
       removalPolicy: cdk.RemovalPolicy.RETAIN, // Don't delete database on stack deletion
+      // Performance improvements
+      enablePerformanceInsights: true, // Free tier: 7 days retention
+      performanceInsightRetention: rds.PerformanceInsightRetention.DEFAULT, // 7 days (free tier)
     });
 
     // ========================================
@@ -301,6 +305,83 @@ export class InfraStack extends cdk.Stack {
           ttl: cdk.Duration.minutes(5),
         },
       ],
+    });
+
+    // ========================================
+    // CloudWatch Alarms for Performance Monitoring
+    // ========================================
+
+    // ALB Target Response Time alarm (latency > 1 second)
+    new cloudwatch.Alarm(this, 'HighLatencyAlarm', {
+      alarmName: 'Resilio-HighLatency',
+      alarmDescription: 'API response time exceeds 1 second',
+      metric: backendService.loadBalancer.metrics.targetResponseTime({
+        period: cdk.Duration.minutes(1),
+        statistic: 'Average',
+      }),
+      threshold: 1,
+      evaluationPeriods: 3,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // ALB 5xx Error Rate alarm
+    new cloudwatch.Alarm(this, 'High5xxErrorAlarm', {
+      alarmName: 'Resilio-High5xxErrors',
+      alarmDescription: 'High rate of 5xx errors from backend',
+      metric: backendService.loadBalancer.metrics.httpCodeElb(
+        cdk.aws_elasticloadbalancingv2.HttpCodeElb.ELB_5XX_COUNT,
+        {
+          period: cdk.Duration.minutes(5),
+          statistic: 'Sum',
+        }
+      ),
+      threshold: 10,
+      evaluationPeriods: 2,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // RDS CPU Utilization alarm
+    new cloudwatch.Alarm(this, 'DatabaseHighCpuAlarm', {
+      alarmName: 'Resilio-DatabaseHighCPU',
+      alarmDescription: 'Database CPU utilization exceeds 80%',
+      metric: database.metricCPUUtilization({
+        period: cdk.Duration.minutes(5),
+        statistic: 'Average',
+      }),
+      threshold: 80,
+      evaluationPeriods: 3,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // RDS Free Storage Space alarm (< 5GB)
+    new cloudwatch.Alarm(this, 'DatabaseLowStorageAlarm', {
+      alarmName: 'Resilio-DatabaseLowStorage',
+      alarmDescription: 'Database free storage space below 5GB',
+      metric: database.metricFreeStorageSpace({
+        period: cdk.Duration.minutes(5),
+        statistic: 'Average',
+      }),
+      threshold: 5 * 1024 * 1024 * 1024, // 5GB in bytes
+      evaluationPeriods: 2,
+      comparisonOperator: cloudwatch.ComparisonOperator.LESS_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // RDS Database Connections alarm
+    new cloudwatch.Alarm(this, 'DatabaseHighConnectionsAlarm', {
+      alarmName: 'Resilio-DatabaseHighConnections',
+      alarmDescription: 'Database connections exceeding 80% of max',
+      metric: database.metricDatabaseConnections({
+        period: cdk.Duration.minutes(5),
+        statistic: 'Average',
+      }),
+      threshold: 80, // db.t3.micro max is ~87 connections
+      evaluationPeriods: 3,
+      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
+      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
     });
 
     // ========================================
