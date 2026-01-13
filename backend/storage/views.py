@@ -10,12 +10,15 @@ from rest_framework.response import Response
 
 def get_s3_client():
     """Get S3 client configured with AWS credentials."""
-    return boto3.client(
-        's3',
-        region_name=settings.AWS_S3_REGION,
-        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-    )
+    client_kwargs = {
+        'region_name': settings.AWS_S3_REGION,
+        'aws_access_key_id': settings.AWS_ACCESS_KEY_ID,
+        'aws_secret_access_key': settings.AWS_SECRET_ACCESS_KEY,
+    }
+    # Include session token if using temporary credentials
+    if settings.AWS_SESSION_TOKEN:
+        client_kwargs['aws_session_token'] = settings.AWS_SESSION_TOKEN
+    return boto3.client('s3', **client_kwargs)
 
 
 @api_view(['POST'])

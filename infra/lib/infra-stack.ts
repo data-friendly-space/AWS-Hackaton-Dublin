@@ -144,6 +144,7 @@ export class InfraStack extends cdk.Stack {
             SECRET_KEY: ecs.Secret.fromSecretsManager(djangoSecret, 'secret_key'),
             AWS_ACCESS_KEY_ID: ecs.Secret.fromSecretsManager(s3UploadSecret, 'access_key_id'),
             AWS_SECRET_ACCESS_KEY: ecs.Secret.fromSecretsManager(s3UploadSecret, 'secret_access_key'),
+            AWS_SESSION_TOKEN: ecs.Secret.fromSecretsManager(s3UploadSecret, 'session_token'),
           },
           logDriver: ecs.LogDrivers.awsLogs({
             streamPrefix: 'resilio-backend',
