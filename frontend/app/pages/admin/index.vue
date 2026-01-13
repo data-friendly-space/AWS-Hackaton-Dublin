@@ -12,9 +12,11 @@ const { isAuthenticated, isSuperadmin, authFetch } = useAuth()
 const config = useRuntimeConfig()
 
 // Redirect if not authenticated or not superadmin
-if (!isAuthenticated.value || !isSuperadmin.value) {
-  navigateTo('/')
-}
+onMounted(() => {
+  if (!isAuthenticated.value || !isSuperadmin.value) {
+    navigateTo('/')
+  }
+})
 
 // Fetch users
 const { data: usersData, pending: usersPending } = await useFetch<{ results: any[] }>(

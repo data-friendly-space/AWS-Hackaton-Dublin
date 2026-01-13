@@ -11,9 +11,11 @@ useHead({
 const { user, updateProfile, changePassword, isAuthenticated } = useAuth()
 
 // Redirect if not authenticated
-if (!isAuthenticated.value) {
-  navigateTo('/login')
-}
+onMounted(() => {
+  if (!isAuthenticated.value) {
+    navigateTo('/login')
+  }
+})
 
 // Profile form
 const profileForm = ref({

@@ -48,23 +48,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating new users (Superadmin only)."""
 
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password_confirm = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
         fields = [
-            'email', 'password', 'password_confirm',
+            'email', 'password',
             'first_name', 'last_name', 'title',
             'country', 'department', 'job_title', 'role'
         ]
 
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError({'password_confirm': 'Passwords do not match.'})
-        return attrs
-
     def create(self, validated_data):
-        validated_data.pop('password_confirm')
         password = validated_data.pop('password')
         user = User(**validated_data)
         user.set_password(password)
@@ -114,11 +107,20 @@ class ChangePasswordSerializer(serializers.Serializer):
         return value
 
 
+class MemberUserSerializer(serializers.ModelSerializer):
+    """Lightweight user serializer for membership display."""
+    full_name = serializers.CharField(source='get_full_name', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'first_name', 'last_name', 'full_name']
+
+
 class ProjectMembershipSerializer(serializers.ModelSerializer):
     """Serializer for project memberships."""
 
-    user_email = serializers.EmailField(source='user.email', read_only=True)
-    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
+    user = MemberUserSerializer(read_only=True)
+    user_id = serializers.UUIDField(write_only=True, required=False)
     project_title = serializers.CharField(source='project.title', read_only=True)
     role_display = serializers.CharField(source='get_role_display', read_only=True)
     assigned_by_name = serializers.CharField(source='assigned_by.get_full_name', read_only=True)
@@ -126,7 +128,7 @@ class ProjectMembershipSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectMembership
         fields = [
-            'id', 'user', 'user_email', 'user_name',
+            'id', 'user', 'user_id',
             'project', 'project_title',
             'role', 'role_display',
             'assigned_by', 'assigned_by_name', 'assigned_at'
