@@ -3,9 +3,29 @@ Resilio Core Views - REST API ViewSets for R4S models
 """
 
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
 from django.db import models as db_models
+from django.db import connection
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def health_check(request):
+    """Health check endpoint for load balancer"""
+    # Check database connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT 1')
+        db_status = 'healthy'
+    except Exception as e:
+        db_status = f'unhealthy: {str(e)}'
+
+    return Response({
+        'status': 'healthy' if db_status == 'healthy' else 'degraded',
+        'database': db_status,
+    })
 
 from .models import (
     System, Risk, Actor, Relationship,

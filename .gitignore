@@ -67,3 +67,10 @@ htmlcov/
 
 # Claude
 .claude/
+
+# CDK
+cdk.out/
+*.js
+*.d.ts
+!jest.config.js
+infra/outputs.json

@@ -8,7 +8,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     SystemViewSet, RiskViewSet, ActorViewSet,
     RelationshipViewSet, ComponentAssessmentViewSet,
-    VulnerabilityAssessmentViewSet
+    VulnerabilityAssessmentViewSet, health_check
 )
 
 router = DefaultRouter()
@@ -20,5 +20,6 @@ router.register(r'component-assessments', ComponentAssessmentViewSet, basename='
 router.register(r'vulnerability-assessments', VulnerabilityAssessmentViewSet, basename='vulnerability-assessment')
 
 urlpatterns = [
+    path('health/', health_check, name='health-check'),
     path('', include(router.urls)),
 ]
