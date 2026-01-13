@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- Background circle -->
+  <circle cx="60" cy="60" r="56" fill="#006e33"/>
+
+  <!-- R letter -->
+  <path d="M40 30h25c11 0 20 9 20 20s-9 20-20 20H55l20 20H60L45 75v15H40V30zm5 5v30h20c8.284 0 15-6.716 15-15s-6.716-15-15-15H45z" fill="white"/>
+
+  <!-- Network nodes representing resilience -->
+  <circle cx="85" cy="85" r="6" fill="#00994d"/>
+  <circle cx="95" cy="65" r="4" fill="#00994d"/>
+  <circle cx="75" cy="95" r="4" fill="#00994d"/>
+
+  <!-- Connection lines -->
+  <path d="M85 85L95 65M85 85L75 95" stroke="#00994d" stroke-width="2" stroke-linecap="round"/>
+</svg>

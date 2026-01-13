@@ -12,9 +12,7 @@ const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
       <div class="container flex h-16 items-center justify-between">
         <div class="flex items-center gap-4">
           <NuxtLink to="/" class="flex items-center gap-2">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-goal text-white font-bold">
-              R
-            </div>
+            <img src="/logo.svg" alt="Resilio" class="h-8 w-8" />
             <span class="text-xl font-bold text-goal-dark">Resilio</span>
           </NuxtLink>
           <span class="text-sm text-muted-foreground hidden sm:inline">

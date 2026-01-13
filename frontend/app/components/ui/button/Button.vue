@@ -1,31 +1,31 @@
 <script setup lang="ts">
 import { type HTMLAttributes, computed } from 'vue'
-import { Primitive, type PrimitiveProps } from 'radix-vue'
 import { type ButtonVariants, buttonVariants } from '.'
 import { cn } from '@/lib/utils'
 
-interface Props extends /* @vue-ignore */ PrimitiveProps {
+interface Props {
   variant?: ButtonVariants['variant']
   size?: ButtonVariants['size']
   class?: HTMLAttributes['class']
+  type?: 'button' | 'submit' | 'reset'
+  disabled?: boolean
+  asChild?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  as: 'button',
-})
-
-const delegatedProps = computed(() => {
-  const { class: _, ...delegated } = props
-
-  return delegated
+  type: 'button',
+  disabled: false,
+  asChild: false,
 })
 </script>
 
 <template>
-  <Primitive
-    v-bind="delegatedProps"
+  <component
+    :is="asChild ? 'slot' : 'button'"
+    :type="asChild ? undefined : type"
+    :disabled="disabled"
     :class="cn(buttonVariants({ variant, size }), props.class)"
   >
     <slot />
-  </Primitive>
+  </component>
 </template>
