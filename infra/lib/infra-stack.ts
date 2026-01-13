@@ -12,6 +12,7 @@ import * as cloudfront_origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as appscaling from 'aws-cdk-lib/aws-applicationautoscaling';
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -22,7 +23,7 @@ export class InfraStack extends cdk.Stack {
     // ========================================
     const vpc = new ec2.Vpc(this, 'ResilioVpc', {
       maxAzs: 2,
-      natGateways: 1,
+      natGateways: 2, // One per AZ for high availability
       subnetConfiguration: [
         {
           cidrMask: 24,
@@ -94,8 +95,11 @@ export class InfraStack extends cdk.Stack {
       }),
       allocatedStorage: 20,
       maxAllocatedStorage: 100,
-      deleteAutomatedBackups: true,
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // For hackathon - change for production
+      // Reliability improvements
+      multiAz: true, // Automatic failover to standby in another AZ
+      deleteAutomatedBackups: false, // Retain backups on deletion
+      backupRetention: cdk.Duration.days(7), // 7-day backup retention
+      removalPolicy: cdk.RemovalPolicy.RETAIN, // Don't delete database on stack deletion
     });
 
     // ========================================
@@ -124,7 +128,9 @@ export class InfraStack extends cdk.Stack {
         cluster,
         cpu: 256,
         memoryLimitMiB: 512,
-        desiredCount: 1,
+        desiredCount: 2, // Minimum 2 tasks for high availability
+        minHealthyPercent: 100, // Keep all tasks running during deployments
+        maxHealthyPercent: 200, // Allow double capacity during deployments
         taskImageOptions: {
           image: ecs.ContainerImage.fromDockerImageAsset(backendImage),
           containerPort: 8000,
@@ -175,13 +181,43 @@ export class InfraStack extends cdk.Stack {
     uploadBucket.grantReadWrite(backendService.taskDefinition.taskRole);
 
     // ========================================
+    // ECS Auto Scaling
+    // ========================================
+    const scaling = backendService.service.autoScaleTaskCount({
+      minCapacity: 2,
+      maxCapacity: 10,
+    });
+
+    // Scale based on CPU utilization
+    scaling.scaleOnCpuUtilization('CpuScaling', {
+      targetUtilizationPercent: 70,
+      scaleInCooldown: cdk.Duration.seconds(60),
+      scaleOutCooldown: cdk.Duration.seconds(60),
+    });
+
+    // Scale based on memory utilization
+    scaling.scaleOnMemoryUtilization('MemoryScaling', {
+      targetUtilizationPercent: 70,
+      scaleInCooldown: cdk.Duration.seconds(60),
+      scaleOutCooldown: cdk.Duration.seconds(60),
+    });
+
+    // Scale based on request count per target
+    scaling.scaleOnRequestCount('RequestScaling', {
+      requestsPerTarget: 1000,
+      targetGroup: backendService.targetGroup,
+      scaleInCooldown: cdk.Duration.seconds(60),
+      scaleOutCooldown: cdk.Duration.seconds(60),
+    });
+
+    // ========================================
     // Frontend S3 Bucket
     // ========================================
     const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
       bucketName: `resilio-frontend-${this.account}-${this.region}`,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // For hackathon - change for production
-      autoDeleteObjects: true, // For hackathon - change for production
+      removalPolicy: cdk.RemovalPolicy.RETAIN, // Retain bucket on stack deletion
+      versioned: true, // Enable versioning for data protection
     });
 
     // ========================================

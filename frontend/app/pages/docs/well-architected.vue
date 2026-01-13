@@ -32,7 +32,7 @@ const pillars: Pillar[] = [
   {
     name: 'Operational Excellence',
     description: 'Run and monitor systems to deliver business value and continually improve processes',
-    score: 75,
+    score: 85,
     findings: [
       {
         title: 'Infrastructure as Code',
@@ -57,10 +57,10 @@ const pillars: Pillar[] = [
       },
       {
         title: 'Deployment Strategy',
-        status: 'warning',
-        current: 'Rolling deployments with minHealthyPercent not explicitly configured',
-        recommendation: 'Configure minHealthyPercent to prevent downtime during deployments',
-        priority: 'Medium'
+        status: 'good',
+        current: 'Rolling deployments with minHealthyPercent=100%, maxHealthyPercent=200% configured',
+        recommendation: 'Current configuration ensures zero-downtime deployments',
+        priority: 'Low'
       },
       {
         title: 'Runbooks & Documentation',
@@ -137,56 +137,56 @@ const pillars: Pillar[] = [
   {
     name: 'Reliability',
     description: 'Recover from failures and meet demand through distributed system design',
-    score: 55,
+    score: 95,
     findings: [
       {
         title: 'Multi-AZ Deployment',
         status: 'good',
-        current: 'VPC spans 2 Availability Zones',
-        recommendation: 'Current configuration provides basic redundancy',
+        current: 'VPC spans 2 Availability Zones with NAT Gateway in each AZ',
+        recommendation: 'Current configuration provides full AZ redundancy',
         priority: 'Low'
       },
       {
         title: 'Database Backups',
-        status: 'warning',
-        current: 'RDS automated backups enabled but deleteAutomatedBackups=true set',
-        recommendation: 'Disable deleteAutomatedBackups for production, enable point-in-time recovery',
-        priority: 'High'
+        status: 'good',
+        current: 'RDS automated backups enabled with 7-day retention, deleteAutomatedBackups=false',
+        recommendation: 'Current configuration provides point-in-time recovery capability',
+        priority: 'Low'
       },
       {
         title: 'Database High Availability',
-        status: 'critical',
-        current: 'Single-AZ RDS instance (no Multi-AZ)',
-        recommendation: 'Enable Multi-AZ for production to provide automatic failover',
-        priority: 'High'
+        status: 'good',
+        current: 'Multi-AZ RDS deployment with automatic failover to standby',
+        recommendation: 'Current configuration provides automatic failover capability',
+        priority: 'Low'
       },
       {
         title: 'ECS Task Count',
-        status: 'critical',
-        current: 'Only 1 ECS task running (desiredCount: 1)',
-        recommendation: 'Increase to minimum 2 tasks across AZs for high availability',
-        priority: 'High'
+        status: 'good',
+        current: 'Minimum 2 ECS tasks running across AZs (desiredCount: 2)',
+        recommendation: 'Current configuration provides redundancy across availability zones',
+        priority: 'Low'
       },
       {
         title: 'Auto Scaling',
-        status: 'critical',
-        current: 'No auto scaling configured for ECS service',
-        recommendation: 'Add target tracking scaling policy based on CPU/memory utilization',
-        priority: 'High'
+        status: 'good',
+        current: 'Auto scaling configured: CPU (70%), Memory (70%), Request count (1000/target), scales 2-10 tasks',
+        recommendation: 'Current configuration handles load spikes automatically',
+        priority: 'Low'
       },
       {
         title: 'Data Retention',
-        status: 'warning',
-        current: 'S3 bucket has autoDeleteObjects=true and DESTROY removal policy',
-        recommendation: 'Change to RETAIN for production and disable autoDeleteObjects',
-        priority: 'High'
+        status: 'good',
+        current: 'S3 bucket with RETAIN removal policy and versioning enabled',
+        recommendation: 'Current configuration protects against accidental deletion',
+        priority: 'Low'
       },
       {
         title: 'NAT Gateway Redundancy',
-        status: 'warning',
-        current: 'Only 1 NAT Gateway configured',
-        recommendation: 'Add NAT Gateway per AZ for high availability (cost consideration)',
-        priority: 'Medium'
+        status: 'good',
+        current: '2 NAT Gateways configured (one per AZ)',
+        recommendation: 'Current configuration provides full network redundancy',
+        priority: 'Low'
       }
     ]
   },
@@ -261,8 +261,8 @@ const pillars: Pillar[] = [
       {
         title: 'NAT Gateway',
         status: 'info',
-        current: 'Single NAT Gateway (~$32/month + data transfer)',
-        recommendation: 'Consider NAT Instance for lower cost in dev environments',
+        current: '2 NAT Gateways for HA (~$64/month + data transfer)',
+        recommendation: 'Cost of HA; consider single NAT Gateway for dev environments',
         priority: 'Low'
       },
       {
@@ -397,14 +397,23 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
           </div>
         </div>
 
-        <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <h4 class="font-semibold text-amber-800 mb-2">Key Recommendations</h4>
+        <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <h4 class="font-semibold text-green-800 mb-2">Recent Improvements</h4>
+          <ul class="text-sm text-green-700 space-y-1">
+            <li>✓ RDS Multi-AZ deployment enabled for automatic failover</li>
+            <li>✓ ECS task count increased to 2 with auto-scaling (2-10 tasks)</li>
+            <li>✓ NAT Gateway redundancy (one per AZ)</li>
+            <li>✓ S3 versioning and RETAIN policy for data protection</li>
+            <li>✓ Database backup retention set to 7 days</li>
+          </ul>
+        </div>
+
+        <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <h4 class="font-semibold text-amber-800 mb-2">Remaining Recommendations</h4>
           <ul class="text-sm text-amber-700 space-y-1">
-            <li>1. Enable Multi-AZ for RDS database for high availability</li>
-            <li>2. Increase ECS task count to minimum 2 for redundancy</li>
-            <li>3. Add auto-scaling policies for ECS service</li>
-            <li>4. Configure AWS WAF on CloudFront for security</li>
-            <li>5. Change removal policies from DESTROY to RETAIN for production</li>
+            <li>1. Configure AWS WAF on CloudFront for security</li>
+            <li>2. Enable HTTPS between CloudFront and ALB</li>
+            <li>3. Create operational runbooks for failure scenarios</li>
           </ul>
         </div>
       </CardContent>
@@ -474,41 +483,37 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
     <Card class="mt-8">
       <CardHeader>
         <CardTitle>Production Readiness Checklist</CardTitle>
-        <CardDescription>Critical items to address before production deployment</CardDescription>
+        <CardDescription>Status of critical production requirements</CardDescription>
       </CardHeader>
       <CardContent>
         <div class="space-y-3">
-          <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-            <XCircle class="h-5 w-5 text-red-600" />
-            <span class="text-sm">Enable RDS Multi-AZ deployment</span>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">RDS Multi-AZ deployment enabled</span>
           </div>
-          <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-            <XCircle class="h-5 w-5 text-red-600" />
-            <span class="text-sm">Increase ECS desired count to 2+</span>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">ECS desired count set to 2+ with auto-scaling</span>
           </div>
-          <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-            <XCircle class="h-5 w-5 text-red-600" />
-            <span class="text-sm">Configure ECS auto-scaling policies</span>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">ECS auto-scaling policies configured (CPU, Memory, Requests)</span>
           </div>
-          <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
-            <XCircle class="h-5 w-5 text-red-600" />
-            <span class="text-sm">Add AWS WAF to CloudFront distribution</span>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">S3 removal policy set to RETAIN with versioning</span>
           </div>
-          <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-            <AlertTriangle class="h-5 w-5 text-yellow-600" />
-            <span class="text-sm">Change S3 removal policy from DESTROY to RETAIN</span>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">RDS backups retained with 7-day retention</span>
           </div>
-          <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-            <AlertTriangle class="h-5 w-5 text-yellow-600" />
-            <span class="text-sm">Disable deleteAutomatedBackups for RDS</span>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">minHealthyPercent configured for zero-downtime deployments</span>
           </div>
-          <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-            <AlertTriangle class="h-5 w-5 text-yellow-600" />
-            <span class="text-sm">Configure HTTPS between CloudFront and ALB</span>
-          </div>
-          <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
-            <AlertTriangle class="h-5 w-5 text-yellow-600" />
-            <span class="text-sm">Set minHealthyPercent for rolling deployments</span>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">NAT Gateway redundancy (one per AZ)</span>
           </div>
           <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
             <CheckCircle class="h-5 w-5 text-green-600" />
@@ -525,6 +530,14 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
           <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
             <CheckCircle class="h-5 w-5 text-green-600" />
             <span class="text-sm">Infrastructure as Code (CDK)</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg">
+            <XCircle class="h-5 w-5 text-red-600" />
+            <span class="text-sm">Add AWS WAF to CloudFront distribution</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
+            <AlertTriangle class="h-5 w-5 text-yellow-600" />
+            <span class="text-sm">Configure HTTPS between CloudFront and ALB</span>
           </div>
         </div>
       </CardContent>
