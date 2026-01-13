@@ -312,6 +312,12 @@ export class InfraStack extends cdk.Stack {
       defaultRootObject: 'index.html',
       errorResponses: [
         {
+          httpStatus: 403,
+          responseHttpStatus: 200,
+          responsePagePath: '/index.html',
+          ttl: cdk.Duration.minutes(5),
+        },
+        {
           httpStatus: 404,
           responseHttpStatus: 200,
           responsePagePath: '/index.html',
