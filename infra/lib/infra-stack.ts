@@ -1,0 +1,258 @@
+import * as cdk from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as ecr_assets from 'aws-cdk-lib/aws-ecr-assets';
+import * as ecs_patterns from 'aws-cdk-lib/aws-ecs-patterns';
+import * as rds from 'aws-cdk-lib/aws-rds';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
+import * as cloudfront_origins from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as logs from 'aws-cdk-lib/aws-logs';
+
+export class InfraStack extends cdk.Stack {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    super(scope, id, props);
+
+    // ========================================
+    // VPC
+    // ========================================
+    const vpc = new ec2.Vpc(this, 'ResilioVpc', {
+      maxAzs: 2,
+      natGateways: 1,
+      subnetConfiguration: [
+        {
+          cidrMask: 24,
+          name: 'Public',
+          subnetType: ec2.SubnetType.PUBLIC,
+        },
+        {
+          cidrMask: 24,
+          name: 'Private',
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
+      ],
+    });
+
+    // ========================================
+    // Secrets
+    // ========================================
+    const djangoSecret = new secretsmanager.Secret(this, 'DjangoSecret', {
+      secretName: 'resilio/django',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: 'admin' }),
+        generateStringKey: 'secret_key',
+        excludePunctuation: true,
+        passwordLength: 50,
+      },
+    });
+
+    // S3 Upload Credentials Secret
+    // This secret needs to be manually populated with AWS credentials that have S3 access
+    // After deployment, update the secret with:
+    // aws secretsmanager put-secret-value --secret-id resilio/s3-upload --secret-string '{"access_key_id":"YOUR_KEY","secret_access_key":"YOUR_SECRET"}'
+    const s3UploadSecret = new secretsmanager.Secret(this, 'S3UploadSecret', {
+      secretName: 'resilio/s3-upload',
+      description: 'AWS credentials for S3 file uploads to dub01hackathongoal bucket',
+      secretObjectValue: {
+        access_key_id: cdk.SecretValue.unsafePlainText('PLACEHOLDER_UPDATE_AFTER_DEPLOY'),
+        secret_access_key: cdk.SecretValue.unsafePlainText('PLACEHOLDER_UPDATE_AFTER_DEPLOY'),
+      },
+    });
+
+    // Reference the existing S3 bucket for uploads
+    const uploadBucket = s3.Bucket.fromBucketName(this, 'UploadBucket', 'dub01hackathongoal');
+
+    // ========================================
+    // RDS PostgreSQL Database
+    // ========================================
+    const dbSecurityGroup = new ec2.SecurityGroup(this, 'DbSecurityGroup', {
+      vpc,
+      description: 'Security group for RDS PostgreSQL',
+      allowAllOutbound: true,
+    });
+
+    const database = new rds.DatabaseInstance(this, 'ResilioDb', {
+      engine: rds.DatabaseInstanceEngine.postgres({
+        version: rds.PostgresEngineVersion.VER_15,
+      }),
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T3,
+        ec2.InstanceSize.MICRO
+      ),
+      vpc,
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+      securityGroups: [dbSecurityGroup],
+      databaseName: 'resilio',
+      credentials: rds.Credentials.fromGeneratedSecret('resilio_admin', {
+        secretName: 'resilio/database',
+      }),
+      allocatedStorage: 20,
+      maxAllocatedStorage: 100,
+      deleteAutomatedBackups: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // For hackathon - change for production
+    });
+
+    // ========================================
+    // ECS Cluster
+    // ========================================
+    const cluster = new ecs.Cluster(this, 'ResilioCluster', {
+      vpc,
+      containerInsightsV2: ecs.ContainerInsights.ENABLED,
+    });
+
+    // ========================================
+    // Backend Docker Image
+    // ========================================
+    const backendImage = new ecr_assets.DockerImageAsset(this, 'BackendImage', {
+      directory: '../backend',
+      platform: ecr_assets.Platform.LINUX_AMD64,
+    });
+
+    // ========================================
+    // Backend ECS Fargate Service
+    // ========================================
+    const backendService = new ecs_patterns.ApplicationLoadBalancedFargateService(
+      this,
+      'BackendService',
+      {
+        cluster,
+        cpu: 256,
+        memoryLimitMiB: 512,
+        desiredCount: 1,
+        taskImageOptions: {
+          image: ecs.ContainerImage.fromDockerImageAsset(backendImage),
+          containerPort: 8000,
+          environment: {
+            DJANGO_SETTINGS_MODULE: 'config.settings',
+            ALLOWED_HOSTS: '*',
+            DEBUG: 'False',
+            DB_NAME: 'resilio',
+            DB_HOST: database.dbInstanceEndpointAddress,
+            DB_PORT: database.dbInstanceEndpointPort,
+            AWS_S3_BUCKET: 'dub01hackathongoal',
+            AWS_S3_REGION: 'us-west-2',
+          },
+          secrets: {
+            DB_USER: ecs.Secret.fromSecretsManager(database.secret!, 'username'),
+            DB_PASSWORD: ecs.Secret.fromSecretsManager(database.secret!, 'password'),
+            SECRET_KEY: ecs.Secret.fromSecretsManager(djangoSecret, 'secret_key'),
+            AWS_ACCESS_KEY_ID: ecs.Secret.fromSecretsManager(s3UploadSecret, 'access_key_id'),
+            AWS_SECRET_ACCESS_KEY: ecs.Secret.fromSecretsManager(s3UploadSecret, 'secret_access_key'),
+          },
+          logDriver: ecs.LogDrivers.awsLogs({
+            streamPrefix: 'resilio-backend',
+            logRetention: logs.RetentionDays.ONE_WEEK,
+          }),
+        },
+        publicLoadBalancer: true,
+        assignPublicIp: false,
+      }
+    );
+
+    // Allow backend to connect to database
+    dbSecurityGroup.addIngressRule(
+      backendService.service.connections.securityGroups[0],
+      ec2.Port.tcp(5432),
+      'Allow backend to connect to database'
+    );
+
+    // Health check
+    backendService.targetGroup.configureHealthCheck({
+      path: '/api/health/',
+      healthyHttpCodes: '200',
+      interval: cdk.Duration.seconds(30),
+      timeout: cdk.Duration.seconds(5),
+    });
+
+    // Grant backend task access to S3 upload bucket
+    uploadBucket.grantReadWrite(backendService.taskDefinition.taskRole);
+
+    // ========================================
+    // Frontend S3 Bucket
+    // ========================================
+    const frontendBucket = new s3.Bucket(this, 'FrontendBucket', {
+      bucketName: `resilio-frontend-${this.account}-${this.region}`,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // For hackathon - change for production
+      autoDeleteObjects: true, // For hackathon - change for production
+    });
+
+    // ========================================
+    // CloudFront Distribution
+    // ========================================
+    const distribution = new cloudfront.Distribution(this, 'FrontendDistribution', {
+      defaultBehavior: {
+        origin: cloudfront_origins.S3BucketOrigin.withOriginAccessControl(frontendBucket),
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      },
+      additionalBehaviors: {
+        '/api/*': {
+          origin: new cloudfront_origins.HttpOrigin(
+            backendService.loadBalancer.loadBalancerDnsName,
+            {
+              protocolPolicy: cloudfront.OriginProtocolPolicy.HTTP_ONLY,
+            }
+          ),
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        },
+      },
+      defaultRootObject: 'index.html',
+      errorResponses: [
+        {
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: '/index.html',
+          ttl: cdk.Duration.minutes(5),
+        },
+      ],
+    });
+
+    // ========================================
+    // Outputs
+    // ========================================
+    new cdk.CfnOutput(this, 'VpcId', {
+      value: vpc.vpcId,
+      description: 'VPC ID',
+    });
+
+    new cdk.CfnOutput(this, 'DatabaseEndpoint', {
+      value: database.dbInstanceEndpointAddress,
+      description: 'RDS PostgreSQL endpoint',
+    });
+
+    new cdk.CfnOutput(this, 'BackendUrl', {
+      value: `http://${backendService.loadBalancer.loadBalancerDnsName}`,
+      description: 'Backend API URL',
+    });
+
+    new cdk.CfnOutput(this, 'FrontendBucketName', {
+      value: frontendBucket.bucketName,
+      description: 'Frontend S3 bucket name',
+    });
+
+    new cdk.CfnOutput(this, 'CloudFrontUrl', {
+      value: `https://${distribution.distributionDomainName}`,
+      description: 'CloudFront distribution URL',
+    });
+
+    new cdk.CfnOutput(this, 'CloudFrontDistributionId', {
+      value: distribution.distributionId,
+      description: 'CloudFront distribution ID',
+    });
+
+    new cdk.CfnOutput(this, 'S3UploadSecretArn', {
+      value: s3UploadSecret.secretArn,
+      description: 'ARN of the S3 upload credentials secret - update with your AWS credentials',
+    });
+  }
+}

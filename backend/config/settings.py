@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     # Local apps
     'users',
     'core',
+    'storage',
 ]
 
 MIDDLEWARE = [
@@ -159,3 +160,9 @@ if not DEBUG:
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
+
+# AWS S3 Configuration
+AWS_S3_BUCKET = os.getenv('AWS_S3_BUCKET', 'dub01hackathongoal')
+AWS_S3_REGION = os.getenv('AWS_S3_REGION', 'us-west-2')
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')

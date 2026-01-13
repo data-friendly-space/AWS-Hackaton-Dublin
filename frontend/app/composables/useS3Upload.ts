@@ -1,4 +1,7 @@
-import { S3Client, PutObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3'
+/**
+ * S3 Upload composable using backend pre-signed URLs
+ * This approach keeps AWS credentials secure on the backend
+ */
 
 export interface UploadProgress {
   loaded: number
@@ -6,57 +9,65 @@ export interface UploadProgress {
   percentage: number
 }
 
-export interface S3UploadConfig {
+interface PresignedUrlResponse {
+  url: string
+  key: string
   bucket: string
-  region: string
-  accessKeyId: string
-  secretAccessKey: string
+  expires_in: number
+}
+
+interface PresignedUrlsBatchResponse {
+  urls: Array<{
+    filename: string
+    url: string
+    key: string
+    content_type: string
+    error?: string
+  }>
+  bucket: string
+  expires_in: number
+}
+
+interface FolderCheckResponse {
+  folder: string
+  exists: boolean
+}
+
+interface FolderCreateResponse {
+  folder: string
+  created: boolean
+}
+
+interface FileInfo {
+  key: string
+  filename: string
+  size: number
+  last_modified: string
+}
+
+interface ListFilesResponse {
+  folder: string
+  files: FileInfo[]
+  count: number
 }
 
 export function useS3Upload() {
   const config = useRuntimeConfig()
+  const { authFetch, accessToken } = useAuth()
+  const baseUrl = config.public.apiBase
 
-  const s3Config: S3UploadConfig = {
-    bucket: 'dub01hackathongoal',
-    region: config.public.awsRegion || 'us-west-2',
-    accessKeyId: config.public.awsAccessKeyId || '',
-    secretAccessKey: config.public.awsSecretAccessKey || ''
-  }
-
-  let s3Client: S3Client | null = null
-
-  function getClient(): S3Client {
-    if (!s3Client) {
-      if (!s3Config.accessKeyId || !s3Config.secretAccessKey) {
-        throw new Error('AWS credentials not configured. Set NUXT_PUBLIC_AWS_ACCESS_KEY_ID and NUXT_PUBLIC_AWS_SECRET_ACCESS_KEY environment variables.')
-      }
-
-      s3Client = new S3Client({
-        region: s3Config.region,
-        credentials: {
-          accessKeyId: s3Config.accessKeyId,
-          secretAccessKey: s3Config.secretAccessKey
-        }
-      })
-    }
-    return s3Client
-  }
+  const bucket = 'dub01hackathongoal'
+  const region = 'us-west-2'
 
   /**
-   * Check if a folder (prefix) exists in the S3 bucket
+   * Check if a folder exists in the S3 bucket
    */
   async function folderExists(folderName: string): Promise<boolean> {
-    const client = getClient()
-
     try {
-      const command = new ListObjectsV2Command({
-        Bucket: s3Config.bucket,
-        Prefix: `${folderName}/`,
-        MaxKeys: 1
-      })
-
-      const response = await client.send(command)
-      return (response.Contents?.length || 0) > 0
+      const response = await authFetch<FolderCheckResponse>(
+        `${baseUrl}/storage/folder/check/?folder=${encodeURIComponent(folderName)}`
+      )
+      return response.exists
     } catch (error) {
       console.error('Error checking folder:', error)
       return false
@@ -64,18 +75,13 @@ export function useS3Upload() {
   }
 
   /**
-   * Create a folder in S3 (by creating an empty object with trailing slash)
+   * Create a folder in S3
    */
   async function createFolder(folderName: string): Promise<void> {
-    const client = getClient()
-
-    const command = new PutObjectCommand({
-      Bucket: s3Config.bucket,
-      Key: `${folderName}/`,
-      Body: ''
+    await authFetch<FolderCreateResponse>(`${baseUrl}/storage/folder/create/`, {
+      method: 'POST',
+      body: { folder: folderName }
     })
-
-    await client.send(command)
   }
 
   /**
@@ -89,44 +95,97 @@ export function useS3Upload() {
   }
 
   /**
-   * Upload a file to S3
+   * Get a pre-signed URL for a single file
+   */
+  async function getPresignedUrl(
+    filename: string,
+    contentType: string,
+    folder: string
+  ): Promise<PresignedUrlResponse> {
+    return await authFetch<PresignedUrlResponse>(`${baseUrl}/storage/presigned-url/`, {
+      method: 'POST',
+      body: {
+        filename,
+        content_type: contentType,
+        folder
+      }
+    })
+  }
+
+  /**
+   * Get pre-signed URLs for multiple files
+   */
+  async function getPresignedUrlsBatch(
+    files: Array<{ filename: string; content_type: string }>,
+    folder: string
+  ): Promise<PresignedUrlsBatchResponse> {
+    return await authFetch<PresignedUrlsBatchResponse>(`${baseUrl}/storage/presigned-urls/`, {
+      method: 'POST',
+      body: {
+        files,
+        folder
+      }
+    })
+  }
+
+  /**
+   * Upload a file using a pre-signed URL
+   */
+  async function uploadWithPresignedUrl(
+    file: File,
+    presignedUrl: string,
+    onProgress?: (progress: UploadProgress) => void
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable && onProgress) {
+          onProgress({
+            loaded: event.loaded,
+            total: event.total,
+            percentage: Math.round((event.loaded / event.total) * 100)
+          })
+        }
+      })
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve()
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`))
+        }
+      })
+
+      xhr.addEventListener('error', () => {
+        reject(new Error('Upload failed due to network error'))
+      })
+
+      xhr.open('PUT', presignedUrl, true)
+      xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream')
+      xhr.send(file)
+    })
+  }
+
+  /**
+   * Upload a file to S3 (gets pre-signed URL and uploads)
    */
   async function uploadFile(
     file: File,
     folderName: string,
     onProgress?: (progress: UploadProgress) => void
   ): Promise<string> {
-    const client = getClient()
-    const key = `${folderName}/${file.name}`
+    // Get pre-signed URL
+    const presigned = await getPresignedUrl(
+      file.name,
+      file.type || 'application/octet-stream',
+      folderName
+    )
 
-    // Ensure folder exists
-    await ensureFolder(folderName)
+    // Upload using the pre-signed URL
+    await uploadWithPresignedUrl(file, presigned.url, onProgress)
 
-    // Read file as ArrayBuffer
-    const arrayBuffer = await file.arrayBuffer()
-    const body = new Uint8Array(arrayBuffer)
-
-    const command = new PutObjectCommand({
-      Bucket: s3Config.bucket,
-      Key: key,
-      Body: body,
-      ContentType: file.type || 'application/octet-stream'
-    })
-
-    // Note: The AWS SDK v3 doesn't support upload progress directly
-    // For progress tracking with large files, you'd use @aws-sdk/lib-storage
-    // For simplicity in this demo, we simulate progress
-    if (onProgress) {
-      onProgress({ loaded: 0, total: file.size, percentage: 0 })
-    }
-
-    await client.send(command)
-
-    if (onProgress) {
-      onProgress({ loaded: file.size, total: file.size, percentage: 100 })
-    }
-
-    return `s3://${s3Config.bucket}/${key}`
+    return `s3://${presigned.bucket}/${presigned.key}`
   }
 
   /**
@@ -144,11 +203,29 @@ export function useS3Upload() {
     // Ensure folder exists before uploading
     await ensureFolder(folderName)
 
+    // Get all pre-signed URLs at once for efficiency
+    const fileInfos = files.map((file) => ({
+      filename: file.name,
+      content_type: file.type || 'application/octet-stream'
+    }))
+
+    const presignedResponse = await getPresignedUrlsBatch(fileInfos, folderName)
+
+    // Upload each file using its pre-signed URL
     for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      const presigned = presignedResponse.urls[i]
+
+      if (presigned.error) {
+        failed++
+        onFileComplete?.(i, false, presigned.error)
+        continue
+      }
+
       try {
-        await uploadFile(
-          files[i],
-          folderName,
+        await uploadWithPresignedUrl(
+          file,
+          presigned.url,
           onFileProgress ? (progress) => onFileProgress(i, progress) : undefined
         )
         successful++
@@ -166,15 +243,17 @@ export function useS3Upload() {
    * List files in a folder
    */
   async function listFiles(folderName: string): Promise<string[]> {
-    const client = getClient()
+    const response = await authFetch<ListFilesResponse>(
+      `${baseUrl}/storage/files/?folder=${encodeURIComponent(folderName)}`
+    )
+    return response.files.map((f) => f.key)
+  }
 
-    const command = new ListObjectsV2Command({
-      Bucket: s3Config.bucket,
-      Prefix: `${folderName}/`
-    })
-
-    const response = await client.send(command)
-    return response.Contents?.map(obj => obj.Key || '').filter(key => key !== `${folderName}/`) || []
+  /**
+   * Check if the backend storage API is configured
+   */
+  function isConfigured(): boolean {
+    return !!accessToken.value
   }
 
   return {
@@ -184,7 +263,8 @@ export function useS3Upload() {
     createFolder,
     ensureFolder,
     listFiles,
-    bucket: s3Config.bucket,
-    region: s3Config.region
+    isConfigured,
+    bucket,
+    region
   }
 }

@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { ArrowLeft, Upload, File, X, CheckCircle, AlertCircle, Loader2, FolderOpen } from 'lucide-vue-next'
+import { ArrowLeft, Upload, File, X, CheckCircle, AlertCircle, Loader2, FolderOpen, LogIn } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const route = useRoute()
 const slug = route.params.slug as string
 
 const { getSystemBySlug } = useMockSystems()
 const system = getSystemBySlug(slug)
+
+// Auth check
+const { isAuthenticated } = useAuth()
 
 useHead({
   title: () => system ? `Upload Data - ${system.name} - Resilio` : 'Upload Data',
@@ -133,30 +137,14 @@ async function uploadFiles() {
 }
 
 async function uploadToS3(uploadFile: UploadFile, folderName: string): Promise<void> {
-  try {
-    // Use the S3 composable to upload
-    await s3Upload(
-      uploadFile.file,
-      folderName,
-      (progress) => {
-        uploadFile.progress = progress.percentage
-      }
-    )
-  } catch (error: any) {
-    // If AWS credentials aren't configured, fall back to simulation
-    if (error.message?.includes('credentials')) {
-      console.warn('AWS credentials not configured, simulating upload...')
-      // Simulate upload progress for demo
-      const totalChunks = 10
-      for (let i = 1; i <= totalChunks; i++) {
-        await new Promise(resolve => setTimeout(resolve, 150))
-        uploadFile.progress = Math.round((i / totalChunks) * 100)
-      }
-      console.log(`[SIMULATED] Uploaded ${uploadFile.name} to s3://${S3_BUCKET}/${folderName}/${uploadFile.name}`)
-    } else {
-      throw error
+  // Use the S3 composable to upload via pre-signed URL
+  await s3Upload(
+    uploadFile.file,
+    folderName,
+    (progress) => {
+      uploadFile.progress = progress.percentage
     }
-  }
+  )
 }
 
 const totalSize = computed(() => {
@@ -185,6 +173,21 @@ const hasErrors = computed(() => {
     </div>
 
     <template v-else>
+      <!-- Authentication Required -->
+      <Alert v-if="!isAuthenticated" class="mb-8" variant="destructive">
+        <LogIn class="h-4 w-4" />
+        <AlertTitle>Authentication Required</AlertTitle>
+        <AlertDescription>
+          You must be logged in to upload files. Please log in to continue.
+        </AlertDescription>
+        <Button variant="outline" size="sm" class="mt-4" as-child>
+          <NuxtLink to="/login">
+            <LogIn class="mr-2 h-4 w-4" />
+            Log In
+          </NuxtLink>
+        </Button>
+      </Alert>
+
       <!-- Header -->
       <div class="mb-8">
         <NuxtLink :to="`/systems/${slug}`" class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
@@ -202,22 +205,23 @@ const hasErrors = computed(() => {
         </div>
       </div>
 
-      <!-- Upload Info -->
-      <Card class="mb-6">
-        <CardContent class="pt-6">
-          <div class="flex items-center gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-goal/10">
-              <FolderOpen class="h-6 w-6 text-goal" />
+      <!-- Upload Info (only visible when authenticated) -->
+      <template v-if="isAuthenticated">
+        <Card class="mb-6">
+          <CardContent class="pt-6">
+            <div class="flex items-center gap-4">
+              <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-goal/10">
+                <FolderOpen class="h-6 w-6 text-goal" />
+              </div>
+              <div>
+                <p class="font-medium">Target Location</p>
+                <p class="text-sm text-muted-foreground">
+                  <code class="bg-muted px-2 py-0.5 rounded">s3://{{ S3_BUCKET }}/{{ slug }}/</code>
+                </p>
+              </div>
             </div>
-            <div>
-              <p class="font-medium">Target Location</p>
-              <p class="text-sm text-muted-foreground">
-                <code class="bg-muted px-2 py-0.5 rounded">s3://{{ S3_BUCKET }}/{{ slug }}/</code>
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
       <!-- Drop Zone -->
       <Card class="mb-6">
@@ -368,6 +372,7 @@ const hasErrors = computed(() => {
           </Button>
         </div>
       </div>
+      </template>
     </template>
   </div>
 </template>
