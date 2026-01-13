@@ -285,6 +285,31 @@ export class InfraStack extends cdk.Stack {
     });
 
     // ========================================
+    // CloudFront Function for URL Rewriting
+    // ========================================
+    // Appends /index.html to directory-style URLs for static site routing
+    const urlRewriteFunction = new cloudfront.Function(this, 'UrlRewriteFunction', {
+      functionName: 'resilio-url-rewrite',
+      code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+
+  // If URI ends with '/' append index.html
+  if (uri.endsWith('/')) {
+    request.uri += 'index.html';
+  }
+  // If URI doesn't have a file extension, append /index.html
+  else if (!uri.includes('.')) {
+    request.uri += '/index.html';
+  }
+
+  return request;
+}
+      `),
+    });
+
+    // ========================================
     // CloudFront Distribution
     // ========================================
     const distribution = new cloudfront.Distribution(this, 'FrontendDistribution', {
@@ -293,6 +318,10 @@ export class InfraStack extends cdk.Stack {
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         responseHeadersPolicy: responseHeadersPolicy,
+        functionAssociations: [{
+          function: urlRewriteFunction,
+          eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+        }],
       },
       additionalBehaviors: {
         '/api/*': {
