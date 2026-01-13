@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 150 77% 12%; /* GOAL dark green */
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 77% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 77% 12%;
+
+    /* Primary: GOAL Global Green #006e33 */
+    --primary: 150 100% 22%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: GOAL Light Green #00994d */
+    --secondary: 152 100% 30%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 150 10% 96%;
+    --muted-foreground: 150 10% 40%;
+
+    /* Accent: GOAL Dark Green #04371b */
+    --accent: 150 77% 12%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 20% 90%;
+    --input: 150 20% 90%;
+    --ring: 150 100% 22%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 150 30% 6%;
+    --foreground: 0 0% 98%;
+
+    --card: 150 30% 8%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 150 30% 8%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary: GOAL Global Green #006e33 */
+    --primary: 150 100% 22%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: GOAL Light Green #00994d */
+    --secondary: 152 100% 30%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 150 30% 15%;
+    --muted-foreground: 150 10% 60%;
+
+    /* Accent: GOAL Dark Green #04371b */
+    --accent: 150 77% 12%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 150 30% 15%;
+    --input: 150 30% 15%;
+    --ring: 150 100% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Custom utility classes for R4S */
+@layer utilities {
+  .actor-node {
+    @apply rounded-lg shadow-md border-2 transition-all duration-200;
+  }
+
+  .actor-service-user {
+    @apply border-actor-service-user bg-actor-service-user/10;
+  }
+
+  .actor-service-provider {
+    @apply border-actor-service-provider bg-actor-service-provider/10;
+  }
+
+  .actor-support {
+    @apply border-actor-support bg-actor-support/10;
+  }
+
+  .actor-regulatory {
+    @apply border-actor-regulatory bg-actor-regulatory/10;
+  }
+
+  .quality-good {
+    @apply text-quality-good;
+  }
+
+  .quality-stressed {
+    @apply text-quality-stressed;
+  }
+
+  .quality-bad {
+    @apply text-quality-bad;
+  }
+
+  .quality-absent {
+    @apply text-quality-absent;
+  }
+
+  .vulnerability-minimal {
+    @apply bg-vulnerability-minimal text-white;
+  }
+
+  .vulnerability-low {
+    @apply bg-vulnerability-low text-white;
+  }
+
+  .vulnerability-medium {
+    @apply bg-vulnerability-medium text-white;
+  }
+
+  .vulnerability-high {
+    @apply bg-vulnerability-high text-white;
+  }
+}

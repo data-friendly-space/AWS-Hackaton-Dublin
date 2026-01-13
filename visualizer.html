@@ -1,0 +1,2307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resilio System Visualizer | GOAL Global</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* GOAL Global Primary Colors */
+            --goal-green-dark: #04371b;
+            --goal-green: #006e33;
+            --goal-green-light: #00994d;
+
+            --primary-deep: #04371b;
+            --primary-main: #006e33;
+            --primary-light: #00994d;
+            --secondary-warm: #E85D04;
+            --secondary-coral: #F4A261;
+            --neutral-900: #1A1F2E;
+            --neutral-800: #2D3344;
+            --neutral-700: #4A5168;
+            --neutral-600: #6B7280;
+            --neutral-500: #9CA3AF;
+            --neutral-400: #D1D5DB;
+            --neutral-300: #E5E7EB;
+            --neutral-200: #F3F4F6;
+            --neutral-100: #F9FAFB;
+            --neutral-white: #FFFFFF;
+
+            /* Actor type colors */
+            --actor-user: #8B5CF6;
+            --actor-provider: #006e33;
+            --actor-support: #F59E0B;
+            --actor-regulatory: #EF4444;
+
+            /* Relationship quality colors */
+            --quality-good: #22C55E;
+            --quality-stressed: #F59E0B;
+            --quality-bad: #EF4444;
+            --quality-absent: #9CA3AF;
+
+            /* Vulnerability colors */
+            --vuln-minimal: #22C55E;
+            --vuln-low: #84CC16;
+            --vuln-medium: #F59E0B;
+            --vuln-high: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--neutral-100);
+            color: var(--neutral-900);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Layout */
+        .app {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            grid-template-rows: auto 1fr;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, var(--primary-deep) 0%, var(--primary-main) 100%);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .header-logo h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: white;
+            color: var(--primary-deep);
+        }
+
+        .btn-primary:hover {
+            background: var(--neutral-200);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--neutral-white);
+            border-right: 1px solid var(--neutral-300);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--neutral-300);
+        }
+
+        .sidebar-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--neutral-600);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+
+        .sidebar-tab:hover {
+            color: var(--primary-main);
+        }
+
+        .sidebar-tab.active {
+            color: var(--primary-main);
+            border-bottom-color: var(--primary-main);
+        }
+
+        .sidebar-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-panel {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-panel.active {
+            display: flex;
+        }
+
+        /* Editor */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .editor-toolbar {
+            padding: 8px 12px;
+            background: var(--neutral-200);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.75rem;
+        }
+
+        .editor-toolbar select {
+            padding: 4px 8px;
+            border: 1px solid var(--neutral-400);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            background: white;
+        }
+
+        #editor {
+            flex: 1;
+            width: 100%;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8125rem;
+            line-height: 1.6;
+            border: none;
+            resize: none;
+            background: var(--neutral-900);
+            color: #E5E7EB;
+        }
+
+        #editor:focus {
+            outline: none;
+        }
+
+        .parse-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary-main);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .parse-btn:hover {
+            background: var(--primary-deep);
+        }
+
+        /* Info Panel */
+        .info-panel {
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .info-section {
+            margin-bottom: 24px;
+        }
+
+        .info-section h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--neutral-500);
+            margin-bottom: 12px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: var(--neutral-100);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .stat-card .value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-deep);
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: var(--neutral-600);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-line {
+            width: 24px;
+            height: 3px;
+            border-radius: 2px;
+        }
+
+        .legend-label {
+            font-size: 0.875rem;
+            color: var(--neutral-700);
+        }
+
+        /* Details Panel */
+        .details-panel {
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .details-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--neutral-500);
+        }
+
+        .details-card {
+            background: var(--neutral-100);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .details-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .details-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .details-title h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .details-type {
+            font-size: 0.75rem;
+            color: var(--neutral-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .details-field {
+            margin-bottom: 16px;
+        }
+
+        .details-field label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--neutral-600);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .details-field p {
+            font-size: 0.875rem;
+            color: var(--neutral-700);
+            line-height: 1.5;
+        }
+
+        .vuln-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            position: relative;
+            background: var(--neutral-200);
+            overflow: hidden;
+        }
+
+        #canvas {
+            display: block;
+        }
+
+        /* Canvas Controls */
+        .canvas-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .canvas-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: white;
+            border: 1px solid var(--neutral-300);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .canvas-btn:hover {
+            background: var(--neutral-100);
+            border-color: var(--primary-main);
+        }
+
+        .canvas-btn svg {
+            width: 20px;
+            height: 20px;
+            color: var(--neutral-700);
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-chip {
+            padding: 6px 12px;
+            background: white;
+            border: 1px solid var(--neutral-300);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .filter-chip:hover {
+            border-color: var(--primary-main);
+        }
+
+        .filter-chip.active {
+            background: var(--primary-main);
+            color: white;
+            border-color: var(--primary-main);
+        }
+
+        .filter-chip .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background: var(--neutral-900);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            max-width: 300px;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .tooltip.visible {
+            opacity: 1;
+        }
+
+        .tooltip-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .tooltip-type {
+            font-size: 0.75rem;
+            color: var(--neutral-400);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Error display */
+        .error-banner {
+            background: #FEE2E2;
+            border: 1px solid #FECACA;
+            color: #991B1B;
+            padding: 12px 16px;
+            font-size: 0.875rem;
+            display: none;
+        }
+
+        .error-banner.visible {
+            display: block;
+        }
+
+        /* Minimap */
+        .minimap {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            height: 100px;
+            background: white;
+            border: 1px solid var(--neutral-300);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .minimap canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .loading-overlay.visible {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--neutral-300);
+            border-top-color: var(--primary-main);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-logo">
+                <svg viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="24" r="20" stroke="white" stroke-width="2.5"/>
+                    <circle cx="24" cy="12" r="4" fill="white"/>
+                    <circle cx="12" cy="28" r="4" fill="white"/>
+                    <circle cx="36" cy="28" r="4" fill="white"/>
+                    <circle cx="24" cy="32" r="3" fill="#F9C74F"/>
+                    <path d="M24 16 L24 29" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M15 26 L21 30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M33 26 L27 30" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <h1>Resilio Visualizer</h1>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="loadExample()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    Load Example
+                </button>
+                <button class="btn btn-secondary" onclick="exportPNG()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export PNG
+                </button>
+                <button class="btn btn-primary" onclick="parseAndRender()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Visualize
+                </button>
+            </div>
+        </header>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-tabs">
+                <button class="sidebar-tab active" data-tab="editor">Editor</button>
+                <button class="sidebar-tab" data-tab="info">Info</button>
+                <button class="sidebar-tab" data-tab="details">Details</button>
+            </div>
+            <div class="sidebar-content">
+                <!-- Editor Panel -->
+                <div class="sidebar-panel active" id="panel-editor">
+                    <div class="editor-container">
+                        <div class="editor-toolbar">
+                            <span>DSL Editor</span>
+                            <select id="example-select" onchange="loadSelectedExample()">
+                                <option value="">-- Load Example --</option>
+                                <option value="simple">Simple System</option>
+                                <option value="rmncah">RMNCAH Health System</option>
+                            </select>
+                        </div>
+                        <textarea id="editor" spellcheck="false" placeholder="# Enter your Resilio DSL here...
+
+system MySystem {
+    name: &quot;My Health System&quot;
+    sector: health
+}
+
+actor Hospital {
+    name: &quot;District Hospital&quot;
+    type: service_provider
+    function: &quot;Provides healthcare services&quot;
+    needs: &quot;Staff, supplies, funding&quot;
+    worries: &quot;Budget cuts, staff shortages&quot;
+}"></textarea>
+                    </div>
+                    <div class="error-banner" id="error-banner"></div>
+                    <button class="parse-btn" onclick="parseAndRender()">Parse & Visualize</button>
+                </div>
+
+                <!-- Info Panel -->
+                <div class="sidebar-panel" id="panel-info">
+                    <div class="info-panel">
+                        <div class="info-section">
+                            <h3>System Overview</h3>
+                            <div id="system-info">
+                                <p style="color: var(--neutral-500); font-size: 0.875rem;">No system loaded. Parse a DSL file to see system information.</p>
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3>Statistics</h3>
+                            <div class="stat-grid" id="stats-grid">
+                                <div class="stat-card">
+                                    <div class="value" id="stat-actors">0</div>
+                                    <div class="label">Actors</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="value" id="stat-relationships">0</div>
+                                    <div class="label">Relationships</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="value" id="stat-risks">0</div>
+                                    <div class="label">Risk Scenarios</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="value" id="stat-vulnerabilities">0</div>
+                                    <div class="label">Vulnerabilities</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3>Actor Types</h3>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: var(--actor-user);"></div>
+                                <span class="legend-label">Service User</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: var(--actor-provider);"></div>
+                                <span class="legend-label">Service Provider</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: var(--actor-support);"></div>
+                                <span class="legend-label">Support</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot" style="background: var(--actor-regulatory);"></div>
+                                <span class="legend-label">Regulatory</span>
+                            </div>
+                        </div>
+                        <div class="info-section">
+                            <h3>Relationship Quality</h3>
+                            <div class="legend-item">
+                                <div class="legend-line" style="background: var(--quality-good);"></div>
+                                <span class="legend-label">Good</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-line" style="background: var(--quality-stressed);"></div>
+                                <span class="legend-label">Stressed</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-line" style="background: var(--quality-bad);"></div>
+                                <span class="legend-label">Bad</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-line" style="background: var(--quality-absent); border: 1px dashed var(--neutral-500);"></div>
+                                <span class="legend-label">Absent</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Panel -->
+                <div class="sidebar-panel" id="panel-details">
+                    <div class="details-panel" id="details-content">
+                        <div class="details-empty">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; opacity: 0.5;">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="16" x2="12" y2="12"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                            <p>Click on an actor or relationship to see details</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Canvas -->
+        <div class="canvas-container" id="canvas-container">
+            <canvas id="canvas"></canvas>
+
+            <!-- Filter Bar -->
+            <div class="filter-bar">
+                <div class="filter-chip active" data-filter="all">
+                    All Actors
+                </div>
+                <div class="filter-chip" data-filter="service_user">
+                    <span class="dot" style="background: var(--actor-user);"></span>
+                    Users
+                </div>
+                <div class="filter-chip" data-filter="service_provider">
+                    <span class="dot" style="background: var(--actor-provider);"></span>
+                    Providers
+                </div>
+                <div class="filter-chip" data-filter="support">
+                    <span class="dot" style="background: var(--actor-support);"></span>
+                    Support
+                </div>
+                <div class="filter-chip" data-filter="regulatory">
+                    <span class="dot" style="background: var(--actor-regulatory);"></span>
+                    Regulatory
+                </div>
+            </div>
+
+            <!-- Canvas Controls -->
+            <div class="canvas-controls">
+                <button class="canvas-btn" onclick="zoomIn()" title="Zoom In">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                </button>
+                <button class="canvas-btn" onclick="zoomOut()" title="Zoom Out">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                        <line x1="8" y1="11" x2="14" y2="11"/>
+                    </svg>
+                </button>
+                <button class="canvas-btn" onclick="resetView()" title="Reset View">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                </button>
+                <button class="canvas-btn" onclick="autoLayout()" title="Auto Layout">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tooltip -->
+            <div class="tooltip" id="tooltip"></div>
+
+            <!-- Loading Overlay -->
+            <div class="loading-overlay" id="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // Resilio DSL Parser
+        // =========================================================================
+
+        class ResilioParser {
+            constructor(input) {
+                this.input = input;
+                this.pos = 0;
+                this.line = 1;
+                this.col = 1;
+            }
+
+            parse() {
+                const result = {
+                    system: null,
+                    risks: {},
+                    actors: {},
+                    relationships: [],
+                    components: {},
+                    vulnerabilities: []
+                };
+
+                this.skipWhitespaceAndComments();
+
+                while (this.pos < this.input.length) {
+                    const keyword = this.readKeyword();
+
+                    switch (keyword) {
+                        case 'system':
+                            result.system = this.parseSystem();
+                            break;
+                        case 'risk':
+                            const risk = this.parseRisk();
+                            result.risks[risk.id] = risk;
+                            break;
+                        case 'actor':
+                            const actor = this.parseActor();
+                            result.actors[actor.id] = actor;
+                            break;
+                        case 'relationship':
+                            result.relationships.push(this.parseRelationshipBlock());
+                            break;
+                        case 'component':
+                            const component = this.parseComponent();
+                            result.components[component.actorId] = component;
+                            break;
+                        case 'vulnerability':
+                            result.vulnerabilities.push(this.parseVulnerability());
+                            break;
+                        default:
+                            // Check for arrow syntax
+                            if (this.peekArrow()) {
+                                const rel = this.parseArrowRelationship(keyword);
+                                result.relationships.push(rel);
+                            } else if (keyword) {
+                                throw new Error(`Unknown keyword: ${keyword} at line ${this.line}`);
+                            }
+                    }
+
+                    this.skipWhitespaceAndComments();
+                }
+
+                return result;
+            }
+
+            skipWhitespaceAndComments() {
+                while (this.pos < this.input.length) {
+                    const ch = this.input[this.pos];
+
+                    if (ch === ' ' || ch === '\t' || ch === '\r') {
+                        this.pos++;
+                        this.col++;
+                    } else if (ch === '\n') {
+                        this.pos++;
+                        this.line++;
+                        this.col = 1;
+                    } else if (ch === '#' || (ch === '/' && this.input[this.pos + 1] === '/')) {
+                        // Single line comment
+                        while (this.pos < this.input.length && this.input[this.pos] !== '\n') {
+                            this.pos++;
+                        }
+                    } else if (ch === '/' && this.input[this.pos + 1] === '*') {
+                        // Multi-line comment
+                        this.pos += 2;
+                        while (this.pos < this.input.length - 1) {
+                            if (this.input[this.pos] === '*' && this.input[this.pos + 1] === '/') {
+                                this.pos += 2;
+                                break;
+                            }
+                            if (this.input[this.pos] === '\n') {
+                                this.line++;
+                                this.col = 1;
+                            }
+                            this.pos++;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            readKeyword() {
+                this.skipWhitespaceAndComments();
+                let keyword = '';
+                while (this.pos < this.input.length && /[a-zA-Z_]/.test(this.input[this.pos])) {
+                    keyword += this.input[this.pos];
+                    this.pos++;
+                    this.col++;
+                }
+                return keyword;
+            }
+
+            readIdentifier() {
+                this.skipWhitespaceAndComments();
+                let id = '';
+                while (this.pos < this.input.length && /[a-zA-Z0-9_]/.test(this.input[this.pos])) {
+                    id += this.input[this.pos];
+                    this.pos++;
+                    this.col++;
+                }
+                return id;
+            }
+
+            readString() {
+                this.skipWhitespaceAndComments();
+
+                if (this.input.substr(this.pos, 3) === '"""') {
+                    // Multi-line string
+                    this.pos += 3;
+                    let str = '';
+                    while (this.pos < this.input.length - 2) {
+                        if (this.input.substr(this.pos, 3) === '"""') {
+                            this.pos += 3;
+                            return str.trim();
+                        }
+                        if (this.input[this.pos] === '\n') {
+                            this.line++;
+                            this.col = 1;
+                        }
+                        str += this.input[this.pos];
+                        this.pos++;
+                    }
+                    throw new Error(`Unterminated multi-line string at line ${this.line}`);
+                }
+
+                if (this.input[this.pos] !== '"') {
+                    throw new Error(`Expected string at line ${this.line}, col ${this.col}`);
+                }
+
+                this.pos++; // Skip opening quote
+                let str = '';
+                while (this.pos < this.input.length && this.input[this.pos] !== '"') {
+                    if (this.input[this.pos] === '\\' && this.input[this.pos + 1] === '"') {
+                        str += '"';
+                        this.pos += 2;
+                    } else {
+                        str += this.input[this.pos];
+                        this.pos++;
+                    }
+                }
+                this.pos++; // Skip closing quote
+                return str;
+            }
+
+            readNumber() {
+                this.skipWhitespaceAndComments();
+                let num = '';
+                while (this.pos < this.input.length && /[0-9.]/.test(this.input[this.pos])) {
+                    num += this.input[this.pos];
+                    this.pos++;
+                }
+                return parseFloat(num);
+            }
+
+            readList() {
+                this.skipWhitespaceAndComments();
+                if (this.input[this.pos] !== '[') {
+                    throw new Error(`Expected '[' at line ${this.line}`);
+                }
+                this.pos++;
+
+                const items = [];
+                this.skipWhitespaceAndComments();
+
+                while (this.input[this.pos] !== ']') {
+                    if (this.input[this.pos] === '"') {
+                        items.push(this.readString());
+                    } else {
+                        items.push(this.readIdentifier());
+                    }
+                    this.skipWhitespaceAndComments();
+                    if (this.input[this.pos] === ',') {
+                        this.pos++;
+                    }
+                    this.skipWhitespaceAndComments();
+                }
+                this.pos++; // Skip ']'
+                return items;
+            }
+
+            expect(char) {
+                this.skipWhitespaceAndComments();
+                if (this.input[this.pos] !== char) {
+                    throw new Error(`Expected '${char}' at line ${this.line}, col ${this.col}, got '${this.input[this.pos]}'`);
+                }
+                this.pos++;
+            }
+
+            peekArrow() {
+                const saved = this.pos;
+                this.skipWhitespaceAndComments();
+                const next = this.input.substr(this.pos, 3);
+                this.pos = saved;
+                return next.includes('->') || next.includes('<-');
+            }
+
+            parseBlock() {
+                const props = {};
+                this.expect('{');
+                this.skipWhitespaceAndComments();
+
+                while (this.input[this.pos] !== '}') {
+                    const key = this.readIdentifier();
+
+                    if (key === 'metadata') {
+                        props.metadata = this.parseBlock();
+                    } else {
+                        this.expect(':');
+                        this.skipWhitespaceAndComments();
+
+                        if (this.input[this.pos] === '"') {
+                            props[key] = this.readString();
+                        } else if (this.input[this.pos] === '[') {
+                            props[key] = this.readList();
+                        } else if (/[0-9]/.test(this.input[this.pos])) {
+                            props[key] = this.readNumber();
+                        } else {
+                            props[key] = this.readIdentifier();
+                        }
+                    }
+                    this.skipWhitespaceAndComments();
+                }
+                this.expect('}');
+                return props;
+            }
+
+            parseSystem() {
+                const id = this.readIdentifier();
+                const props = this.parseBlock();
+                return { id, ...props };
+            }
+
+            parseRisk() {
+                const id = this.readIdentifier();
+                const props = this.parseBlock();
+                return { id, ...props };
+            }
+
+            parseActor() {
+                const id = this.readIdentifier();
+                const props = this.parseBlock();
+                return { id, ...props };
+            }
+
+            parseRelationshipBlock() {
+                const id = this.readIdentifier();
+                const props = this.parseBlock();
+                return { id, ...props };
+            }
+
+            parseArrowRelationship(fromId) {
+                this.skipWhitespaceAndComments();
+
+                let type = 'output';
+                let arrow = '';
+
+                while (this.pos < this.input.length && /[-<>]/.test(this.input[this.pos])) {
+                    arrow += this.input[this.pos];
+                    this.pos++;
+                }
+
+                if (arrow === '<-') {
+                    type = 'input';
+                } else if (arrow === '<->') {
+                    type = 'bidirectional';
+                }
+
+                const toId = this.readIdentifier();
+                const props = this.parseBlock();
+
+                return {
+                    from: type === 'input' ? toId : fromId,
+                    to: type === 'input' ? fromId : toId,
+                    type: type === 'bidirectional' ? 'output' : type,
+                    bidirectional: type === 'bidirectional',
+                    ...props
+                };
+            }
+
+            parseComponent() {
+                const actorId = this.readIdentifier();
+                const props = this.parseBlock();
+
+                // Calculate relevance score
+                const relevance = (props.production || 1) * (props.replaceability || 1);
+
+                return { actorId, ...props, relevance };
+            }
+
+            parseVulnerability() {
+                const actorId = this.readIdentifier();
+                this.skipWhitespaceAndComments();
+                this.expect('@');
+                const riskId = this.readIdentifier();
+                const props = this.parseBlock();
+
+                // Calculate vulnerability score
+                const sensitivity = props.sensitivity || 1;
+                const exposure = props.exposure || 1;
+                const capacity = props.capacity || 1;
+                const score = (sensitivity + exposure) / capacity;
+
+                let level = 'minimal';
+                if (score > 16.66) level = 'high';
+                else if (score > 8.33) level = 'medium';
+                else if (score > 1) level = 'low';
+
+                return { actorId, riskId, ...props, score: Math.round(score * 10) / 10, level };
+            }
+        }
+
+        // =========================================================================
+        // Visualization Engine
+        // =========================================================================
+
+        class SystemVisualizer {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.data = null;
+                this.nodes = [];
+                this.edges = [];
+
+                // View state
+                this.scale = 1;
+                this.offsetX = 0;
+                this.offsetY = 0;
+
+                // Interaction state
+                this.dragging = false;
+                this.dragNode = null;
+                this.dragStartX = 0;
+                this.dragStartY = 0;
+                this.hoveredNode = null;
+                this.selectedNode = null;
+                this.activeFilter = 'all';
+
+                // Colors
+                this.colors = {
+                    service_user: '#8B5CF6',
+                    service_provider: '#006e33',
+                    support: '#F59E0B',
+                    regulatory: '#EF4444',
+                    good: '#22C55E',
+                    stressed: '#F59E0B',
+                    bad: '#EF4444',
+                    absent: '#9CA3AF'
+                };
+
+                this.setupEventListeners();
+                this.resize();
+            }
+
+            resize() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+                this.render();
+            }
+
+            setupEventListeners() {
+                window.addEventListener('resize', () => this.resize());
+
+                this.canvas.addEventListener('mousedown', (e) => this.onMouseDown(e));
+                this.canvas.addEventListener('mousemove', (e) => this.onMouseMove(e));
+                this.canvas.addEventListener('mouseup', (e) => this.onMouseUp(e));
+                this.canvas.addEventListener('wheel', (e) => this.onWheel(e));
+                this.canvas.addEventListener('dblclick', (e) => this.onDoubleClick(e));
+            }
+
+            screenToWorld(x, y) {
+                return {
+                    x: (x - this.offsetX) / this.scale,
+                    y: (y - this.offsetY) / this.scale
+                };
+            }
+
+            worldToScreen(x, y) {
+                return {
+                    x: x * this.scale + this.offsetX,
+                    y: y * this.scale + this.offsetY
+                };
+            }
+
+            onMouseDown(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const world = this.screenToWorld(mouseX, mouseY);
+
+                // Check if clicking on a node
+                for (const node of this.nodes) {
+                    if (!this.isNodeVisible(node)) continue;
+                    const dx = world.x - node.x;
+                    const dy = world.y - node.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < node.radius) {
+                        this.dragNode = node;
+                        this.selectedNode = node;
+                        showDetails(node);
+                        this.render();
+                        return;
+                    }
+                }
+
+                // Otherwise start panning
+                this.dragging = true;
+                this.dragStartX = mouseX - this.offsetX;
+                this.dragStartY = mouseY - this.offsetY;
+            }
+
+            onMouseMove(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const world = this.screenToWorld(mouseX, mouseY);
+
+                if (this.dragNode) {
+                    this.dragNode.x = world.x;
+                    this.dragNode.y = world.y;
+                    this.render();
+                    return;
+                }
+
+                if (this.dragging) {
+                    this.offsetX = mouseX - this.dragStartX;
+                    this.offsetY = mouseY - this.dragStartY;
+                    this.render();
+                    return;
+                }
+
+                // Check hover
+                let hovered = null;
+                for (const node of this.nodes) {
+                    if (!this.isNodeVisible(node)) continue;
+                    const dx = world.x - node.x;
+                    const dy = world.y - node.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < node.radius) {
+                        hovered = node;
+                        break;
+                    }
+                }
+
+                if (hovered !== this.hoveredNode) {
+                    this.hoveredNode = hovered;
+                    this.canvas.style.cursor = hovered ? 'pointer' : 'grab';
+
+                    const tooltip = document.getElementById('tooltip');
+                    if (hovered) {
+                        tooltip.innerHTML = `
+                            <div class="tooltip-title">${hovered.data.name}</div>
+                            <div class="tooltip-type">${hovered.data.type?.replace('_', ' ') || 'Actor'}</div>
+                        `;
+                        tooltip.style.left = (mouseX + 15) + 'px';
+                        tooltip.style.top = (mouseY + 15) + 'px';
+                        tooltip.classList.add('visible');
+                    } else {
+                        tooltip.classList.remove('visible');
+                    }
+
+                    this.render();
+                }
+            }
+
+            onMouseUp(e) {
+                this.dragging = false;
+                this.dragNode = null;
+                this.canvas.style.cursor = this.hoveredNode ? 'pointer' : 'grab';
+            }
+
+            onWheel(e) {
+                e.preventDefault();
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                const zoom = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = Math.max(0.1, Math.min(5, this.scale * zoom));
+
+                // Zoom towards mouse position
+                this.offsetX = mouseX - (mouseX - this.offsetX) * (newScale / this.scale);
+                this.offsetY = mouseY - (mouseY - this.offsetY) * (newScale / this.scale);
+                this.scale = newScale;
+
+                this.render();
+            }
+
+            onDoubleClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const world = this.screenToWorld(mouseX, mouseY);
+
+                for (const node of this.nodes) {
+                    if (!this.isNodeVisible(node)) continue;
+                    const dx = world.x - node.x;
+                    const dy = world.y - node.y;
+                    if (Math.sqrt(dx * dx + dy * dy) < node.radius) {
+                        // Center on node
+                        this.offsetX = this.canvas.width / 2 - node.x * this.scale;
+                        this.offsetY = this.canvas.height / 2 - node.y * this.scale;
+                        this.render();
+                        return;
+                    }
+                }
+            }
+
+            isNodeVisible(node) {
+                if (this.activeFilter === 'all') return true;
+                return node.data.type === this.activeFilter;
+            }
+
+            setFilter(filter) {
+                this.activeFilter = filter;
+                this.render();
+            }
+
+            loadData(data) {
+                this.data = data;
+                this.nodes = [];
+                this.edges = [];
+
+                // Create nodes for each actor
+                const actorIds = Object.keys(data.actors);
+                const nodeCount = actorIds.length;
+
+                // Arrange in a circle initially
+                const centerX = this.canvas.width / 2;
+                const centerY = this.canvas.height / 2;
+                const radius = Math.min(centerX, centerY) * 0.6;
+
+                actorIds.forEach((id, i) => {
+                    const actor = data.actors[id];
+                    const angle = (i / nodeCount) * Math.PI * 2 - Math.PI / 2;
+
+                    // Size based on component relevance
+                    const component = data.components[id];
+                    const baseRadius = 30;
+                    const nodeRadius = component ? baseRadius + component.relevance : baseRadius;
+
+                    // Get max vulnerability for this actor
+                    const vulns = data.vulnerabilities.filter(v => v.actorId === id);
+                    const maxVuln = vulns.length > 0 ? Math.max(...vulns.map(v => v.score)) : 0;
+
+                    this.nodes.push({
+                        id: id,
+                        x: centerX + Math.cos(angle) * radius,
+                        y: centerY + Math.sin(angle) * radius,
+                        radius: nodeRadius,
+                        data: actor,
+                        component: component,
+                        vulnerabilities: vulns,
+                        maxVulnerability: maxVuln
+                    });
+                });
+
+                // Create edges for relationships
+                data.relationships.forEach(rel => {
+                    const fromNode = this.nodes.find(n => n.id === rel.from);
+                    const toNode = this.nodes.find(n => n.id === rel.to);
+
+                    if (fromNode && toNode) {
+                        this.edges.push({
+                            from: fromNode,
+                            to: toNode,
+                            data: rel
+                        });
+                    }
+                });
+
+                this.autoLayout();
+            }
+
+            autoLayout() {
+                // Force-directed layout
+                const iterations = 100;
+                const k = 150; // Optimal distance
+                const gravity = 0.1;
+                const centerX = this.canvas.width / 2 / this.scale;
+                const centerY = this.canvas.height / 2 / this.scale;
+
+                for (let iter = 0; iter < iterations; iter++) {
+                    // Repulsion between nodes
+                    for (let i = 0; i < this.nodes.length; i++) {
+                        for (let j = i + 1; j < this.nodes.length; j++) {
+                            const dx = this.nodes[j].x - this.nodes[i].x;
+                            const dy = this.nodes[j].y - this.nodes[i].y;
+                            const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy));
+                            const force = (k * k) / dist;
+
+                            const fx = (dx / dist) * force;
+                            const fy = (dy / dist) * force;
+
+                            this.nodes[i].x -= fx * 0.1;
+                            this.nodes[i].y -= fy * 0.1;
+                            this.nodes[j].x += fx * 0.1;
+                            this.nodes[j].y += fy * 0.1;
+                        }
+                    }
+
+                    // Attraction along edges
+                    for (const edge of this.edges) {
+                        const dx = edge.to.x - edge.from.x;
+                        const dy = edge.to.y - edge.from.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const force = (dist - k) * 0.1;
+
+                        const fx = (dx / dist) * force;
+                        const fy = (dy / dist) * force;
+
+                        edge.from.x += fx * 0.1;
+                        edge.from.y += fy * 0.1;
+                        edge.to.x -= fx * 0.1;
+                        edge.to.y -= fy * 0.1;
+                    }
+
+                    // Gravity towards center
+                    for (const node of this.nodes) {
+                        node.x += (centerX - node.x) * gravity * 0.1;
+                        node.y += (centerY - node.y) * gravity * 0.1;
+                    }
+                }
+
+                this.centerView();
+                this.render();
+            }
+
+            centerView() {
+                if (this.nodes.length === 0) return;
+
+                let minX = Infinity, maxX = -Infinity;
+                let minY = Infinity, maxY = -Infinity;
+
+                for (const node of this.nodes) {
+                    minX = Math.min(minX, node.x - node.radius);
+                    maxX = Math.max(maxX, node.x + node.radius);
+                    minY = Math.min(minY, node.y - node.radius);
+                    maxY = Math.max(maxY, node.y + node.radius);
+                }
+
+                const width = maxX - minX;
+                const height = maxY - minY;
+                const centerX = (minX + maxX) / 2;
+                const centerY = (minY + maxY) / 2;
+
+                const scaleX = (this.canvas.width - 100) / width;
+                const scaleY = (this.canvas.height - 100) / height;
+                this.scale = Math.min(1.5, Math.min(scaleX, scaleY));
+
+                this.offsetX = this.canvas.width / 2 - centerX * this.scale;
+                this.offsetY = this.canvas.height / 2 - centerY * this.scale;
+            }
+
+            render() {
+                const ctx = this.ctx;
+                ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                ctx.save();
+                ctx.translate(this.offsetX, this.offsetY);
+                ctx.scale(this.scale, this.scale);
+
+                // Draw edges
+                for (const edge of this.edges) {
+                    if (!this.isNodeVisible(edge.from) || !this.isNodeVisible(edge.to)) continue;
+                    this.drawEdge(edge);
+                }
+
+                // Draw nodes
+                for (const node of this.nodes) {
+                    if (!this.isNodeVisible(node)) continue;
+                    this.drawNode(node);
+                }
+
+                ctx.restore();
+            }
+
+            drawNode(node) {
+                const ctx = this.ctx;
+                const { x, y, radius, data } = node;
+                const isHovered = node === this.hoveredNode;
+                const isSelected = node === this.selectedNode;
+
+                // Vulnerability ring
+                if (node.maxVulnerability > 0) {
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius + 8, 0, Math.PI * 2);
+                    ctx.strokeStyle = this.getVulnerabilityColor(node.maxVulnerability);
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+                }
+
+                // Node background
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+
+                const color = this.colors[data.type] || '#6B7280';
+                ctx.fillStyle = isHovered || isSelected ? this.lightenColor(color, 20) : color;
+                ctx.fill();
+
+                // Selection ring
+                if (isSelected) {
+                    ctx.strokeStyle = '#1A1F2E';
+                    ctx.lineWidth = 3;
+                    ctx.stroke();
+                }
+
+                // Node icon/letter
+                ctx.fillStyle = 'white';
+                ctx.font = `bold ${radius * 0.6}px Inter`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(data.name?.charAt(0) || '?', x, y);
+
+                // Label
+                ctx.fillStyle = '#1A1F2E';
+                ctx.font = '12px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+
+                const label = data.name || node.id;
+                const maxWidth = 100;
+                const truncatedLabel = label.length > 15 ? label.substring(0, 15) + '...' : label;
+                ctx.fillText(truncatedLabel, x, y + radius + 8);
+            }
+
+            drawEdge(edge) {
+                const ctx = this.ctx;
+                const { from, to, data } = edge;
+
+                // Calculate edge points
+                const dx = to.x - from.x;
+                const dy = to.y - from.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const nx = dx / dist;
+                const ny = dy / dist;
+
+                const startX = from.x + nx * from.radius;
+                const startY = from.y + ny * from.radius;
+                const endX = to.x - nx * to.radius;
+                const endY = to.y - ny * to.radius;
+
+                // Edge style based on quality
+                const quality = data.quality || 'good';
+                ctx.strokeStyle = this.colors[quality] || '#9CA3AF';
+                ctx.lineWidth = quality === 'absent' ? 1 : 2;
+
+                if (quality === 'absent') {
+                    ctx.setLineDash([5, 5]);
+                } else {
+                    ctx.setLineDash([]);
+                }
+
+                // Draw line
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+
+                // Arrow head
+                const arrowSize = 10;
+                const angle = Math.atan2(endY - startY, endX - startX);
+
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(
+                    endX - arrowSize * Math.cos(angle - Math.PI / 6),
+                    endY - arrowSize * Math.sin(angle - Math.PI / 6)
+                );
+                ctx.lineTo(
+                    endX - arrowSize * Math.cos(angle + Math.PI / 6),
+                    endY - arrowSize * Math.sin(angle + Math.PI / 6)
+                );
+                ctx.closePath();
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.fill();
+
+                ctx.setLineDash([]);
+            }
+
+            getVulnerabilityColor(score) {
+                if (score > 16.66) return '#EF4444';
+                if (score > 8.33) return '#F59E0B';
+                if (score > 1) return '#84CC16';
+                return '#22C55E';
+            }
+
+            lightenColor(hex, percent) {
+                const num = parseInt(hex.replace('#', ''), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = Math.min(255, (num >> 16) + amt);
+                const G = Math.min(255, ((num >> 8) & 0x00FF) + amt);
+                const B = Math.min(255, (num & 0x0000FF) + amt);
+                return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1);
+            }
+
+            zoomIn() {
+                this.scale = Math.min(5, this.scale * 1.2);
+                this.render();
+            }
+
+            zoomOut() {
+                this.scale = Math.max(0.1, this.scale / 1.2);
+                this.render();
+            }
+
+            resetView() {
+                this.centerView();
+                this.render();
+            }
+        }
+
+        // =========================================================================
+        // Application Logic
+        // =========================================================================
+
+        let visualizer;
+        let parsedData = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('canvas');
+            visualizer = new SystemVisualizer(canvas);
+
+            // Tab switching
+            document.querySelectorAll('.sidebar-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+                });
+            });
+
+            // Filter chips
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    visualizer.setFilter(chip.dataset.filter);
+                });
+            });
+        });
+
+        function parseAndRender() {
+            const editor = document.getElementById('editor');
+            const errorBanner = document.getElementById('error-banner');
+
+            try {
+                const parser = new ResilioParser(editor.value);
+                parsedData = parser.parse();
+
+                errorBanner.classList.remove('visible');
+                errorBanner.textContent = '';
+
+                visualizer.loadData(parsedData);
+                updateStats();
+
+                // Switch to info tab
+                document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+                document.querySelector('[data-tab="info"]').classList.add('active');
+                document.getElementById('panel-info').classList.add('active');
+
+            } catch (e) {
+                errorBanner.textContent = 'Parse Error: ' + e.message;
+                errorBanner.classList.add('visible');
+                console.error(e);
+            }
+        }
+
+        function updateStats() {
+            if (!parsedData) return;
+
+            document.getElementById('stat-actors').textContent = Object.keys(parsedData.actors).length;
+            document.getElementById('stat-relationships').textContent = parsedData.relationships.length;
+            document.getElementById('stat-risks').textContent = Object.keys(parsedData.risks).length;
+            document.getElementById('stat-vulnerabilities').textContent = parsedData.vulnerabilities.length;
+
+            const systemInfo = document.getElementById('system-info');
+            if (parsedData.system) {
+                systemInfo.innerHTML = `
+                    <div style="margin-bottom: 12px;">
+                        <strong style="font-size: 1.125rem;">${parsedData.system.name || 'Unnamed System'}</strong>
+                    </div>
+                    ${parsedData.system.description ? `<p style="font-size: 0.875rem; color: var(--neutral-600); margin-bottom: 12px;">${parsedData.system.description.substring(0, 200)}...</p>` : ''}
+                    <div style="font-size: 0.875rem;">
+                        ${parsedData.system.region ? `<div><strong>Region:</strong> ${parsedData.system.region}</div>` : ''}
+                        ${parsedData.system.country ? `<div><strong>Country:</strong> ${parsedData.system.country}</div>` : ''}
+                        ${parsedData.system.sector ? `<div><strong>Sector:</strong> ${parsedData.system.sector}</div>` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        function showDetails(node) {
+            const content = document.getElementById('details-content');
+            const data = node.data;
+            const typeColors = {
+                service_user: 'var(--actor-user)',
+                service_provider: 'var(--actor-provider)',
+                support: 'var(--actor-support)',
+                regulatory: 'var(--actor-regulatory)'
+            };
+
+            let vulnHtml = '';
+            if (node.vulnerabilities && node.vulnerabilities.length > 0) {
+                vulnHtml = `
+                    <div class="details-field">
+                        <label>Vulnerabilities</label>
+                        ${node.vulnerabilities.map(v => {
+                            const colors = {
+                                minimal: 'background: #DCFCE7; color: #166534;',
+                                low: 'background: #ECFCCB; color: #3F6212;',
+                                medium: 'background: #FEF3C7; color: #92400E;',
+                                high: 'background: #FEE2E2; color: #991B1B;'
+                            };
+                            const riskName = parsedData.risks[v.riskId]?.name || v.riskId;
+                            return `<span class="vuln-badge" style="${colors[v.level]}">${riskName}: ${v.score} (${v.level})</span> `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            let componentHtml = '';
+            if (node.component) {
+                componentHtml = `
+                    <div class="details-field">
+                        <label>Component Assessment</label>
+                        <p>
+                            <strong>Production:</strong> ${node.component.production}/5<br>
+                            <strong>Replaceability:</strong> ${node.component.replaceability}/5<br>
+                            <strong>Relevance Score:</strong> ${node.component.relevance}
+                        </p>
+                    </div>
+                `;
+            }
+
+            content.innerHTML = `
+                <div class="details-card">
+                    <div class="details-header">
+                        <div class="details-icon" style="background: ${typeColors[data.type] || '#6B7280'}">
+                            ${data.name?.charAt(0) || '?'}
+                        </div>
+                        <div class="details-title">
+                            <h2>${data.name || node.id}</h2>
+                            <span class="details-type">${data.type?.replace('_', ' ') || 'Actor'}</span>
+                        </div>
+                    </div>
+
+                    ${data.function ? `
+                        <div class="details-field">
+                            <label>Function</label>
+                            <p>${data.function}</p>
+                        </div>
+                    ` : ''}
+
+                    ${data.needs ? `
+                        <div class="details-field">
+                            <label>Needs / Wants</label>
+                            <p>${data.needs}</p>
+                        </div>
+                    ` : ''}
+
+                    ${data.worries ? `
+                        <div class="details-field">
+                            <label>Worries / Concerns</label>
+                            <p>${data.worries}</p>
+                        </div>
+                    ` : ''}
+
+                    ${componentHtml}
+                    ${vulnHtml}
+                </div>
+            `;
+
+            // Switch to details tab
+            document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-panel').forEach(p => p.classList.remove('active'));
+            document.querySelector('[data-tab="details"]').classList.add('active');
+            document.getElementById('panel-details').classList.add('active');
+        }
+
+        function loadExample() {
+            loadSelectedExample('rmncah');
+        }
+
+        function loadSelectedExample(name) {
+            const select = document.getElementById('example-select');
+            const example = name || select.value;
+
+            if (example === 'simple') {
+                document.getElementById('editor').value = SIMPLE_EXAMPLE;
+            } else if (example === 'rmncah') {
+                document.getElementById('editor').value = RMNCAH_EXAMPLE;
+            }
+
+            if (example) {
+                parseAndRender();
+            }
+        }
+
+        function zoomIn() { visualizer.zoomIn(); }
+        function zoomOut() { visualizer.zoomOut(); }
+        function resetView() { visualizer.resetView(); }
+        function autoLayout() { visualizer.autoLayout(); }
+
+        function exportPNG() {
+            const link = document.createElement('a');
+            link.download = 'resilio-system-map.png';
+            link.href = visualizer.canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Example data
+        const SIMPLE_EXAMPLE = `# Simple Health System Example
+
+system SimpleHealth {
+    name: "Simple Health System"
+    sector: health
+    region: "Example Region"
+}
+
+risk drought {
+    name: "Drought"
+    category: climate
+    likelihood: possible
+}
+
+actor Hospital {
+    name: "District Hospital"
+    type: service_provider
+    function: "Provides inpatient and emergency care"
+    needs: "Staff, equipment, medicines"
+    worries: "Budget cuts, staff shortages"
+}
+
+actor HealthCenter {
+    name: "Health Center"
+    type: service_provider
+    function: "Primary healthcare services"
+    needs: "Supplies, supervision"
+    worries: "Stockouts, limited capacity"
+}
+
+actor Community {
+    name: "Community Members"
+    type: service_user
+    function: "Receive healthcare services"
+    needs: "Affordable, accessible care"
+    worries: "Distance, cost, quality"
+}
+
+actor DHO {
+    name: "District Health Office"
+    type: support
+    function: "Coordinates health services"
+    needs: "Budget, data, staff"
+    worries: "Resource constraints"
+}
+
+actor MOH {
+    name: "Ministry of Health"
+    type: regulatory
+    function: "Sets policies and standards"
+    needs: "Political support, funding"
+    worries: "Implementation gaps"
+}
+
+# Relationships
+MOH -> DHO {
+    goods: "Policies, budget, guidelines"
+    quality: good
+    rationale: "Established government channels"
+}
+
+DHO -> Hospital {
+    goods: "Budget, supervision, supplies"
+    quality: stressed
+    rationale: "Budget constraints affect support"
+}
+
+DHO -> HealthCenter {
+    goods: "Supplies, supervision"
+    quality: stressed
+    rationale: "Infrequent supervision visits"
+}
+
+Hospital -> Community {
+    goods: "Emergency and inpatient care"
+    quality: good
+    rationale: "Good clinical services"
+}
+
+HealthCenter -> Community {
+    goods: "Primary healthcare, immunization"
+    quality: stressed
+    rationale: "Stockouts affect service quality"
+}
+
+# Components
+component Hospital {
+    goods: "Emergency care, surgery"
+    production: 5
+    replaceability: 4
+    rationale: "Critical facility, few alternatives"
+}
+
+component HealthCenter {
+    goods: "Primary care"
+    production: 4
+    replaceability: 3
+    rationale: "Main community access point"
+}
+
+component DHO {
+    goods: "Coordination"
+    production: 4
+    replaceability: 5
+    rationale: "Essential coordination role"
+}
+
+# Vulnerabilities
+vulnerability Hospital @ drought {
+    sensitivity: 3
+    exposure: 3
+    capacity: 4
+    rationale: "Some surge capacity available"
+}
+
+vulnerability HealthCenter @ drought {
+    sensitivity: 4
+    exposure: 4
+    capacity: 2
+    rationale: "Limited resources for surge"
+}
+
+vulnerability Community @ drought {
+    sensitivity: 5
+    exposure: 5
+    capacity: 1
+    rationale: "Highly vulnerable population"
+}`;
+
+        const RMNCAH_EXAMPLE = `# RMNCAH Health System - Eastern Region
+
+system RMNCAH_Eastern {
+    name: "RMNCAH Health System"
+    description: "Reproductive, Maternal, Newborn, Child, and Adolescent Health system"
+    region: "Eastern Region"
+    country: "Ethiopia"
+    sector: health
+    subsector: "RMNCAH"
+}
+
+# Risk Scenarios
+risk drought {
+    name: "Severe Drought"
+    description: "Extended rainfall deficit causing water scarcity"
+    category: climate
+    likelihood: likely
+}
+
+risk outbreak {
+    name: "Disease Outbreak"
+    description: "Epidemic requiring surge capacity"
+    category: health
+    likelihood: possible
+}
+
+# Service Users
+actor PregnantWomen {
+    name: "Pregnant Women"
+    type: service_user
+    function: "Primary beneficiaries of maternal health services"
+    needs: "ANC, skilled delivery, emergency care, nutrition"
+    worries: "Distance to facilities, cost, quality of care"
+}
+
+actor Children {
+    name: "Children Under 5"
+    type: service_user
+    function: "Require preventive and curative services"
+    needs: "Immunization, nutrition, illness treatment"
+    worries: "Malnutrition, vaccine-preventable diseases"
+}
+
+actor Adolescents {
+    name: "Adolescent Girls"
+    type: service_user
+    function: "Need reproductive health services"
+    needs: "Youth-friendly services, education"
+    worries: "Stigma, early marriage, lack of services"
+}
+
+# Service Providers
+actor RegionalHospital {
+    name: "Regional Hospital"
+    type: service_provider
+    function: "Tertiary care with CEmONC and specialists"
+    needs: "Specialists, equipment, blood bank"
+    worries: "Staff turnover, equipment breakdown"
+}
+
+actor DistrictHospital {
+    name: "District Hospital"
+    type: service_provider
+    function: "Secondary care with BEmONC and surgery"
+    needs: "Staff, equipment, supplies"
+    worries: "Staff shortages, supply delays"
+}
+
+actor HealthCenter {
+    name: "Health Centers"
+    type: service_provider
+    function: "Primary care including normal deliveries"
+    needs: "Midwives, supplies, referral links"
+    worries: "Stockouts, staff shortages"
+}
+
+actor CHW {
+    name: "Community Health Workers"
+    type: service_provider
+    function: "Community-based health promotion and basic care"
+    needs: "Training, supplies, supervision"
+    worries: "Low compensation, supply shortages"
+}
+
+# Support Actors
+actor DHO {
+    name: "District Health Office"
+    type: support
+    function: "Coordinates health services across district"
+    needs: "Budget, staff, transport, data systems"
+    worries: "Budget cuts, coordination challenges"
+}
+
+actor NGO {
+    name: "Health NGOs"
+    type: support
+    function: "Technical assistance and capacity building"
+    needs: "Government coordination, funding"
+    worries: "Funding cuts, access restrictions"
+}
+
+actor Pharmacy {
+    name: "Pharmaceutical Supply"
+    type: support
+    function: "Medicine and supply distribution"
+    needs: "Foreign currency, transport, storage"
+    worries: "Supply disruptions, stockouts"
+}
+
+# Regulatory
+actor RegionalBureau {
+    name: "Regional Health Bureau"
+    type: regulatory
+    function: "Policy implementation and resource allocation"
+    needs: "Federal guidance, data, staff"
+    worries: "Budget constraints, capacity gaps"
+}
+
+actor MOH {
+    name: "Ministry of Health"
+    type: regulatory
+    function: "National policies and standards"
+    needs: "Political commitment, budget"
+    worries: "Implementation gaps, emergencies"
+}
+
+# Relationships
+MOH -> RegionalBureau {
+    goods: "Policy, budget, standards"
+    quality: good
+    rationale: "Established government channels"
+}
+
+RegionalBureau -> DHO {
+    goods: "Budget, targets, supervision"
+    quality: good
+    rationale: "Clear reporting lines"
+}
+
+DHO -> DistrictHospital {
+    goods: "Budget, staff, supervision"
+    quality: stressed
+    rationale: "Budget constraints limit support"
+}
+
+DHO -> HealthCenter {
+    goods: "Supplies, supervision, guidance"
+    quality: stressed
+    rationale: "Supply delays, infrequent supervision"
+}
+
+DHO -> CHW {
+    goods: "Training, supplies, supervision"
+    quality: bad
+    rationale: "CHWs receive minimal support"
+}
+
+DistrictHospital -> RegionalHospital {
+    goods: "Complex case referrals"
+    quality: good
+    rationale: "Functional referral pathway"
+}
+
+HealthCenter -> DistrictHospital {
+    goods: "Emergency referrals"
+    quality: stressed
+    rationale: "Ambulance delays, poor communication"
+}
+
+CHW -> HealthCenter {
+    goods: "Referrals, community data"
+    quality: stressed
+    rationale: "No formal feedback mechanism"
+}
+
+HealthCenter -> PregnantWomen {
+    goods: "ANC, delivery, postnatal care"
+    quality: stressed
+    rationale: "Staff shortages affect quality"
+}
+
+HealthCenter -> Children {
+    goods: "Immunization, IMCI, nutrition"
+    quality: stressed
+    rationale: "Vaccine stockouts affect coverage"
+}
+
+CHW -> PregnantWomen {
+    goods: "Education, tracking, referrals"
+    quality: good
+    rationale: "Strong community trust"
+}
+
+CHW -> Children {
+    goods: "Home visits, growth monitoring"
+    quality: good
+    rationale: "Good community access"
+}
+
+RegionalHospital -> PregnantWomen {
+    goods: "CEmONC, specialist care"
+    quality: good
+    rationale: "Quality emergency services"
+}
+
+NGO -> DHO {
+    goods: "Technical assistance, training"
+    quality: good
+    rationale: "Strong partnership"
+}
+
+NGO -> HealthCenter {
+    goods: "Training, supplies, mentorship"
+    quality: good
+    rationale: "Effective support programs"
+}
+
+Pharmacy -> DistrictHospital {
+    goods: "Medicines, supplies"
+    quality: stressed
+    rationale: "Frequent stockouts"
+}
+
+Pharmacy -> HealthCenter {
+    goods: "Medicines, vaccines"
+    quality: bad
+    rationale: "End of supply chain, prolonged stockouts"
+}
+
+# Components
+component RegionalHospital {
+    goods: "CEmONC, specialist care"
+    production: 5
+    replaceability: 5
+    rationale: "Only CEmONC facility, irreplaceable"
+}
+
+component DistrictHospital {
+    goods: "BEmONC, surgery"
+    production: 5
+    replaceability: 4
+    rationale: "Primary surgical facility"
+}
+
+component HealthCenter {
+    goods: "Primary MCH services"
+    production: 5
+    replaceability: 3
+    rationale: "Main community access point"
+}
+
+component CHW {
+    goods: "Community outreach"
+    production: 4
+    replaceability: 2
+    rationale: "Critical link, program adjustable"
+}
+
+component DHO {
+    goods: "Coordination, planning"
+    production: 4
+    replaceability: 5
+    rationale: "Essential, no alternative"
+}
+
+component Pharmacy {
+    goods: "Supply chain"
+    production: 5
+    replaceability: 4
+    rationale: "Critical function"
+}
+
+# Vulnerabilities
+vulnerability RegionalHospital @ drought {
+    sensitivity: 3
+    exposure: 3
+    capacity: 4
+    rationale: "Some surge capacity available"
+}
+
+vulnerability DistrictHospital @ drought {
+    sensitivity: 4
+    exposure: 4
+    capacity: 3
+    rationale: "Limited surge capacity"
+}
+
+vulnerability HealthCenter @ drought {
+    sensitivity: 4
+    exposure: 4
+    capacity: 2
+    rationale: "Overwhelmed by increased demand"
+}
+
+vulnerability CHW @ drought {
+    sensitivity: 4
+    exposure: 5
+    capacity: 2
+    rationale: "Work in most affected communities"
+}
+
+vulnerability PregnantWomen @ drought {
+    sensitivity: 5
+    exposure: 5
+    capacity: 1
+    rationale: "Malnutrition directly affects outcomes"
+}
+
+vulnerability Children @ drought {
+    sensitivity: 5
+    exposure: 5
+    capacity: 1
+    rationale: "Most vulnerable to malnutrition"
+}
+
+vulnerability RegionalHospital @ outbreak {
+    sensitivity: 4
+    exposure: 5
+    capacity: 3
+    rationale: "Receives severe cases, limited ICU"
+}
+
+vulnerability DistrictHospital @ outbreak {
+    sensitivity: 5
+    exposure: 5
+    capacity: 2
+    rationale: "First line for cases, limited isolation"
+}
+
+vulnerability HealthCenter @ outbreak {
+    sensitivity: 4
+    exposure: 5
+    capacity: 2
+    rationale: "Community screening role, limited PPE"
+}
+
+vulnerability Pharmacy @ drought {
+    sensitivity: 3
+    exposure: 2
+    capacity: 3
+    rationale: "Indirect impact through demand"
+}`;
+    </script>
+</body>
+</html>

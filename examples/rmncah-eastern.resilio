@@ -1,0 +1,1182 @@
+# =============================================================================
+# RMNCAH Health System - Eastern Region, Ethiopia
+# Resilio Mapping Assessment
+# Generated: 2026-01-15
+# =============================================================================
+
+system RMNCAH_Eastern {
+    name: "RMNCAH Health System"
+    description: """
+        Reproductive, Maternal, Newborn, Child, and Adolescent Health
+        system serving the Eastern Region of Ethiopia. This assessment
+        maps the key actors, relationships, and vulnerabilities affecting
+        RMNCAH service delivery to rural and peri-urban communities.
+    """
+    region: "Eastern Region"
+    country: "Ethiopia"
+    sector: health
+    subsector: "RMNCAH"
+    assessment_date: "2026-01-15"
+    version: "1.0"
+}
+
+# -----------------------------------------------------------------------------
+# Risk Scenarios
+# -----------------------------------------------------------------------------
+
+risk drought {
+    name: "Severe Drought"
+    description: """
+        Extended period of below-normal rainfall (6-18 months) leading to
+        water scarcity, crop failure, livestock losses, and increased food
+        insecurity. Cascading effects on health through malnutrition,
+        waterborne diseases, and reduced healthcare access.
+    """
+    category: climate
+    likelihood: likely
+    historical: "2011, 2015-2016, 2022"
+}
+
+risk disease_outbreak {
+    name: "Disease Outbreak"
+    description: """
+        Sudden increase in infectious disease cases (cholera, measles,
+        acute watery diarrhea) requiring surge capacity. Often follows
+        displacement, flooding, or drought conditions.
+    """
+    category: health
+    likelihood: possible
+}
+
+risk conflict {
+    name: "Armed Conflict/Insecurity"
+    description: """
+        Civil unrest or armed conflict causing population displacement,
+        destruction of health infrastructure, and disruption of supply
+        chains. Health workers may flee affected areas.
+    """
+    category: conflict
+    likelihood: possible
+}
+
+risk economic_shock {
+    name: "Economic Crisis"
+    description: """
+        Currency devaluation, hyperinflation, or market disruption
+        affecting household purchasing power and government health
+        budgets. Impacts drug availability and staff retention.
+    """
+    category: economic
+    likelihood: likely
+}
+
+# -----------------------------------------------------------------------------
+# SERVICE USERS
+# -----------------------------------------------------------------------------
+
+actor PregnantWomen {
+    name: "Pregnant Women"
+    type: service_user
+
+    function: """
+        Primary beneficiaries of maternal health services. Require
+        comprehensive care throughout pregnancy, delivery, and postnatal
+        period. Their health outcomes directly reflect system performance.
+    """
+
+    needs: """
+        - Access to quality antenatal care (minimum 4 visits)
+        - Skilled birth attendance and emergency obstetric care
+        - Postnatal care within 48 hours of delivery
+        - Iron/folic acid supplementation and nutrition support
+        - Health education on danger signs and birth preparedness
+        - Transportation for facility delivery and emergencies
+    """
+
+    worries: """
+        - Distance to health facilities (often >10km)
+        - Cost of services, transport, and supplies
+        - Absence of female health workers
+        - Poor quality of care and provider attitudes
+        - Traditional practices conflicting with medical advice
+        - Husband/family permission requirements for facility delivery
+    """
+}
+
+actor Newborns {
+    name: "Newborns & Infants"
+    type: service_user
+
+    function: """
+        Most vulnerable population requiring immediate postnatal care,
+        immunization, and growth monitoring. Health outcomes in first
+        28 days are critical indicators of system effectiveness.
+    """
+
+    needs: """
+        - Immediate newborn care (warmth, breastfeeding, cord care)
+        - Immunization according to national schedule
+        - Growth monitoring and nutrition support
+        - Treatment of neonatal infections and complications
+    """
+
+    worries: """
+        - Delayed care-seeking for sick newborns
+        - Traditional practices (early bathing, pre-lacteal feeding)
+        - Low birth registration rates
+        - Limited neonatal intensive care capacity
+    """
+}
+
+actor Children {
+    name: "Children Under 5"
+    type: service_user
+
+    function: """
+        Require ongoing preventive and curative health services.
+        High burden of preventable diseases makes this group a
+        priority for health system strengthening.
+    """
+
+    needs: """
+        - Complete immunization coverage
+        - Integrated management of childhood illness (IMCI)
+        - Nutrition screening and supplementation
+        - Malaria prevention and treatment
+        - Safe water and sanitation
+    """
+
+    worries: """
+        - Malnutrition and stunting
+        - Vaccine-preventable disease outbreaks
+        - Diarrheal diseases from unsafe water
+        - Pneumonia and respiratory infections
+        - Limited access to pediatric care
+    """
+}
+
+actor Adolescents {
+    name: "Adolescent Girls"
+    type: service_user
+
+    function: """
+        Require age-appropriate reproductive health information and
+        services. Early pregnancy prevention and support for pregnant
+        adolescents are critical for breaking intergenerational cycles.
+    """
+
+    needs: """
+        - Youth-friendly health services
+        - Reproductive health education
+        - Family planning access
+        - Support for pregnant adolescents
+        - Mental health services
+    """
+
+    worries: """
+        - Stigma around adolescent sexuality
+        - Early marriage and pregnancy
+        - Limited confidential services
+        - School dropout due to pregnancy
+        - Gender-based violence
+    """
+}
+
+# -----------------------------------------------------------------------------
+# SERVICE PROVIDERS
+# -----------------------------------------------------------------------------
+
+actor RegionalHospital {
+    name: "Regional Referral Hospital"
+    type: service_provider
+
+    function: """
+        Tertiary care facility providing comprehensive emergency obstetric
+        and newborn care (CEmONC), surgical services, blood transfusion,
+        and specialist consultations. Serves as referral endpoint for
+        complicated cases from the entire region.
+    """
+
+    needs: """
+        - Specialist medical staff (OB/GYN, pediatricians, anesthetists)
+        - Functioning operating theaters and equipment
+        - Reliable blood bank services
+        - Consistent drug and supply availability
+        - Ambulance services for incoming referrals
+        - Adequate budget for operations
+    """
+
+    worries: """
+        - Specialist staff turnover and vacancies
+        - Equipment breakdown and maintenance gaps
+        - Drug stockouts for essential medicines
+        - Overwhelmed capacity during outbreaks
+        - Late referrals arriving in critical condition
+        - Budget constraints limiting service expansion
+    """
+}
+
+actor DistrictHospital {
+    name: "District Hospital"
+    type: service_provider
+
+    function: """
+        Secondary care facility providing basic emergency obstetric and
+        newborn care (BEmONC), cesarean sections, and inpatient services.
+        First referral level for health centers in the district.
+    """
+
+    needs: """
+        - Trained clinical staff and midwives
+        - Functioning delivery room and theater
+        - Essential drugs and supplies
+        - Laboratory and diagnostic services
+        - Ambulance for referrals to regional hospital
+    """
+
+    worries: """
+        - Staff shortages especially for night shifts
+        - Delayed referrals from health centers
+        - Supply chain unreliability
+        - Infrastructure limitations (water, power)
+        - High patient load exceeding capacity
+    """
+}
+
+actor HealthCenter {
+    name: "Health Centers"
+    type: service_provider
+    aliases: ["HC", "Primary Health Care Unit"]
+
+    function: """
+        Primary care facilities providing antenatal care, normal delivery
+        services, postnatal care, immunization, family planning, and
+        integrated management of childhood illness. Gateway to formal
+        health system for most rural communities.
+    """
+
+    needs: """
+        - Trained midwives and health officers
+        - Basic delivery equipment and supplies
+        - Essential medicines and vaccines (cold chain)
+        - Referral communication and transport
+        - Community outreach support
+        - Reliable utilities (water, electricity)
+    """
+
+    worries: """
+        - Midwife shortages and high workload
+        - Frequent stockouts of essential supplies
+        - Poor referral linkages and communication
+        - Infrastructure gaps (no running water, power outages)
+        - Low community utilization of services
+        - Distance from supervision and support
+    """
+}
+
+actor HealthPost {
+    name: "Health Posts"
+    type: service_provider
+    aliases: ["HP"]
+
+    function: """
+        Community-level facilities staffed by Health Extension Workers.
+        Provide health promotion, disease prevention, basic curative
+        care, and serve as link between community and health system.
+    """
+
+    needs: """
+        - Trained Health Extension Workers (2 per post)
+        - Basic medical supplies and equipment
+        - Supervision and technical support
+        - Community health volunteer network
+        - Referral linkages to health center
+    """
+
+    worries: """
+        - HEW attrition and inadequate replacement
+        - Limited supplies and stockouts
+        - Insufficient supervision visits
+        - Community trust and utilization gaps
+        - Infrastructure limitations
+    """
+}
+
+actor CHW {
+    name: "Community Health Workers"
+    type: service_provider
+    aliases: ["Health Extension Workers", "HEWs", "Health Development Army"]
+
+    function: """
+        Frontline health workers providing community-based services
+        including health education, pregnancy identification and tracking,
+        home visits, referral facilitation, and basic treatment. Critical
+        link between health system and communities.
+    """
+
+    needs: """
+        - Initial and refresher training
+        - Basic supplies (registers, supplies, transport)
+        - Regular supervision and mentorship
+        - Fair compensation or incentives
+        - Community recognition and support
+        - Functional referral pathways
+    """
+
+    worries: """
+        - Inadequate compensation and motivation
+        - Supply shortages limiting service provision
+        - Large catchment areas and heavy workload
+        - Limited supervision and support
+        - Security concerns in some areas
+        - Lack of career progression
+    """
+}
+
+actor PrivateClinic {
+    name: "Private Health Facilities"
+    type: service_provider
+
+    function: """
+        Private clinics and hospitals providing maternal and child health
+        services to those who can afford fees. Significant role in urban
+        and peri-urban areas. Variable quality and limited regulation.
+    """
+
+    needs: """
+        - Licensing and quality standards
+        - Access to referral networks
+        - Staff training opportunities
+        - Drug supply chains
+    """
+
+    worries: """
+        - Regulatory compliance costs
+        - Competition and market pressures
+        - Limited integration with public system
+        - Reputational risks from poor outcomes
+    """
+}
+
+actor TBA {
+    name: "Traditional Birth Attendants"
+    type: service_provider
+
+    function: """
+        Community-based providers of delivery care, particularly in
+        remote areas with limited health facility access. Trusted by
+        communities but lack formal training for complications.
+    """
+
+    needs: """
+        - Recognition and engagement by health system
+        - Basic training on danger signs and referral
+        - Clean delivery supplies
+        - Communication links to formal providers
+    """
+
+    worries: """
+        - Marginalization by formal health system
+        - Blame for poor outcomes
+        - Declining community reliance
+        - No compensation for referrals
+    """
+}
+
+# -----------------------------------------------------------------------------
+# SUPPORT ACTORS
+# -----------------------------------------------------------------------------
+
+actor DHO {
+    name: "District Health Office"
+    type: support
+    aliases: ["Woreda Health Office", "WHO"]
+
+    function: """
+        Government body responsible for coordinating and managing health
+        service delivery across the district. Plans, budgets, supervises,
+        and monitors all public health facilities. Links facilities to
+        regional health bureau and national programs.
+    """
+
+    needs: """
+        - Adequate operational budget
+        - Qualified management and technical staff
+        - Transportation for supervision
+        - Functional health information systems
+        - Clear policy guidance from region
+        - Partner coordination mechanisms
+    """
+
+    worries: """
+        - Budget shortfalls and delayed disbursements
+        - Staff turnover and capacity gaps
+        - Multiple reporting requirements
+        - Limited vehicles and fuel for supervision
+        - Coordination challenges with partners
+        - Political interference in technical decisions
+    """
+}
+
+actor NGO_Health {
+    name: "Health NGOs"
+    type: support
+    aliases: ["INGO Partners", "Implementing Partners"]
+
+    function: """
+        International and local NGOs providing technical assistance,
+        capacity building, supply support, and gap-filling services.
+        Often focus on specific areas (nutrition, immunization) or
+        geographic zones with limited government capacity.
+    """
+
+    needs: """
+        - Government coordination and approval
+        - Community access and acceptance
+        - Continued donor funding
+        - Qualified local staff
+        - Security assurances
+    """
+
+    worries: """
+        - Funding cuts and project closures
+        - Access restrictions in some areas
+        - Sustainability of interventions
+        - Coordination gaps with government
+        - Security incidents affecting staff
+    """
+}
+
+actor UN_Agencies {
+    name: "UN Agencies"
+    type: support
+    aliases: ["UNICEF", "WHO", "UNFPA", "WFP"]
+
+    function: """
+        Provide technical assistance, policy support, essential supplies
+        (vaccines, nutrition commodities), and emergency response capacity.
+        Support government systems and coordinate humanitarian response.
+    """
+
+    needs: """
+        - Government partnership and access
+        - Donor funding commitments
+        - Coordination with other actors
+        - Security for staff movements
+    """
+
+    worries: """
+        - Funding gaps for programs
+        - Access constraints
+        - Coordination challenges
+        - Government capacity limitations
+    """
+}
+
+actor Pharmacy {
+    name: "Pharmaceutical Suppliers"
+    type: support
+    aliases: ["PFSA", "Drug Suppliers"]
+
+    function: """
+        Government pharmaceutical agency and private distributors
+        responsible for procuring, storing, and distributing medicines,
+        vaccines, and medical supplies to health facilities.
+    """
+
+    needs: """
+        - Foreign currency for imports
+        - Adequate warehouse capacity
+        - Transportation fleet
+        - Accurate forecasting from facilities
+        - Quality assurance systems
+    """
+
+    worries: """
+        - Foreign currency shortages
+        - Global supply disruptions
+        - Storage and cold chain failures
+        - Transport and logistics challenges
+        - Forecasting inaccuracies
+    """
+}
+
+actor TrainingInstitution {
+    name: "Health Training Institutions"
+    type: support
+    aliases: ["Nursing Schools", "Health Science Colleges"]
+
+    function: """
+        Produce trained health workforce including nurses, midwives,
+        health officers, and specialists. Quality and quantity of
+        graduates directly impacts health system capacity.
+    """
+
+    needs: """
+        - Qualified instructors
+        - Clinical placement sites
+        - Training materials and equipment
+        - Student support and housing
+        - Accreditation standards
+    """
+
+    worries: """
+        - Instructor shortages
+        - Limited clinical placement capacity
+        - Graduate unemployment or migration
+        - Quality of training concerns
+        - Infrastructure limitations
+    """
+}
+
+actor CommunityLeaders {
+    name: "Community Leaders"
+    type: support
+    aliases: ["Religious Leaders", "Traditional Leaders", "Women's Groups"]
+
+    function: """
+        Influence community attitudes and behaviors regarding health
+        seeking. Can promote facility delivery, immunization, and
+        healthy practices. Essential for community mobilization and
+        trust-building with health system.
+    """
+
+    needs: """
+        - Health information and education
+        - Recognition from health system
+        - Inclusion in planning processes
+        - Resources for community activities
+    """
+
+    worries: """
+        - Being bypassed by health programs
+        - Conflicting messages from different sources
+        - Loss of traditional authority
+        - Community resistance to change
+    """
+}
+
+# -----------------------------------------------------------------------------
+# REGULATORY ACTORS
+# -----------------------------------------------------------------------------
+
+actor RegionalBureau {
+    name: "Regional Health Bureau"
+    type: regulatory
+    aliases: ["RHB"]
+
+    function: """
+        Regional government body responsible for health policy
+        implementation, resource allocation to districts, quality
+        assurance, and performance monitoring. Links districts to
+        federal ministry and adapts national policies to regional context.
+    """
+
+    needs: """
+        - Federal policy guidance and resources
+        - Accurate data from districts
+        - Qualified technical staff
+        - Political support for health priorities
+    """
+
+    worries: """
+        - Budget constraints from federal level
+        - Data quality and timeliness issues
+        - District capacity variations
+        - Competing regional priorities
+        - Emergency response demands
+    """
+}
+
+actor FederalMOH {
+    name: "Federal Ministry of Health"
+    type: regulatory
+    aliases: ["MOH", "FMOH"]
+
+    function: """
+        Sets national health policies, strategies, and standards.
+        Allocates resources to regions, coordinates partners, and
+        represents health sector in government. Oversees regulatory
+        functions and national programs.
+    """
+
+    needs: """
+        - Political commitment to health
+        - Adequate budget allocation
+        - Technical capacity
+        - Partner coordination
+        - Data for decision-making
+    """
+
+    worries: """
+        - Competing government priorities
+        - Resource constraints
+        - Implementation gaps at lower levels
+        - Partner fragmentation
+        - Emergencies diverting resources
+    """
+}
+
+actor FMHACA {
+    name: "Food & Medicine Authority"
+    type: regulatory
+    aliases: ["Regulatory Authority", "Drug Authority"]
+
+    function: """
+        Regulates medicines, medical devices, and health facilities.
+        Ensures quality, safety, and efficacy of health products.
+        Licenses facilities and professionals.
+    """
+
+    needs: """
+        - Technical expertise for regulation
+        - Laboratory capacity for testing
+        - Inspection resources
+        - Legal framework enforcement
+    """
+
+    worries: """
+        - Substandard and counterfeit medicines
+        - Limited inspection capacity
+        - Informal drug markets
+        - Cross-border quality issues
+    """
+}
+
+# -----------------------------------------------------------------------------
+# RELATIONSHIPS
+# -----------------------------------------------------------------------------
+
+# Federal to Regional
+FederalMOH -> RegionalBureau {
+    goods: "Policy guidance, budget allocation, technical standards, national program support"
+    quality: good
+    rationale: "Established government channels with regular communication and resource flows"
+    kpis: ["Budget disbursement timeliness", "Policy implementation rate"]
+}
+
+# Regional to District
+RegionalBureau -> DHO {
+    goods: "Budget allocation, performance targets, supervision, technical guidance"
+    quality: good
+    rationale: "Clear reporting lines and regular supportive supervision visits"
+    kpis: ["Supervision frequency", "Budget release timeliness", "Target achievement"]
+}
+
+# District to Facilities
+DHO -> DistrictHospital {
+    goods: "Budget support, staff deployment, supervision, performance monitoring"
+    quality: stressed
+    rationale: "Budget constraints limit support; supervision less frequent than planned"
+    kpis: ["Budget adequacy", "Supervision visits per quarter"]
+}
+
+DHO -> HealthCenter {
+    goods: "Supplies, supervision, technical guidance, staff deployment"
+    quality: stressed
+    rationale: """
+        Supply deliveries frequently delayed due to logistics challenges.
+        Supervision visits occur quarterly instead of monthly due to
+        vehicle shortages and competing priorities.
+    """
+    kpis: ["Supply delivery timeliness", "Supervision frequency", "Stock-out rate"]
+}
+
+DHO -> HealthPost {
+    goods: "Supplies, HEW supervision, technical support"
+    quality: bad
+    rationale: """
+        Health posts receive minimal direct support from DHO. Supply
+        chain often bypasses them. Supervision is rare and inconsistent.
+    """
+    kpis: ["Supervision visits per year", "Supply availability"]
+}
+
+# Facility Referral Chain
+HealthPost -> HealthCenter {
+    goods: "Patient referrals, community surveillance data, outreach support"
+    quality: stressed
+    rationale: "Referral communication gaps; no formal feedback mechanism"
+    kpis: ["Referral completion rate", "Referral feedback rate"]
+}
+
+HealthCenter -> DistrictHospital {
+    goods: "Emergency referrals, complicated cases, laboratory specimens"
+    quality: stressed
+    rationale: """
+        Referral delays due to ambulance unavailability and poor roads.
+        Communication challenges mean receiving facility often unprepared.
+    """
+    kpis: ["Referral response time", "Maternal deaths during referral"]
+}
+
+DistrictHospital -> RegionalHospital {
+    goods: "Complex surgical cases, specialist consultations, blood products"
+    quality: good
+    rationale: "Functional referral pathway with ambulance and communication"
+    kpis: ["Referral survival rate", "Time to definitive care"]
+}
+
+# Service Delivery to Users
+HealthCenter -> PregnantWomen {
+    goods: "ANC services, delivery care, postnatal care, family planning"
+    quality: stressed
+    rationale: """
+        Service quality affected by midwife shortages and supply stockouts.
+        Long wait times and occasional poor provider attitudes reduce
+        satisfaction and return visits.
+    """
+    kpis: ["ANC 4+ coverage", "Skilled delivery rate", "PNC within 48hrs"]
+}
+
+HealthCenter -> Children {
+    goods: "Immunization, growth monitoring, IMCI services, nutrition screening"
+    quality: stressed
+    rationale: "Vaccine stockouts and cold chain challenges affect coverage"
+    kpis: ["Penta3 coverage", "Stunting rate", "Vitamin A coverage"]
+}
+
+CHW -> PregnantWomen {
+    goods: "Health education, pregnancy tracking, referral facilitation, home visits"
+    quality: good
+    rationale: """
+        Strong community relationships and trust. CHWs live in communities
+        and understand local context. Main limitation is supply availability.
+    """
+    kpis: ["Pregnant women identified", "Facility delivery referrals", "Home visit coverage"]
+}
+
+CHW -> Newborns {
+    goods: "Postnatal home visits, danger sign identification, care practices counseling"
+    quality: good
+    rationale: "Good community access enables early newborn visits"
+    kpis: ["Newborns visited within 48hrs", "Referral for danger signs"]
+}
+
+TBA -> PregnantWomen {
+    goods: "Delivery assistance, traditional care, community-based support"
+    quality: stressed
+    rationale: """
+        TBAs provide culturally appropriate care but lack skills for
+        complications. Limited linkage to formal health system for referrals.
+    """
+    kpis: ["Referral rate for complications", "Clean delivery practices"]
+}
+
+# Support Relationships
+NGO_Health -> DHO {
+    goods: "Technical assistance, training, equipment, gap-filling support"
+    quality: good
+    rationale: "Strong partnership with coordinated planning and implementation"
+    kpis: ["Joint planning meetings", "Activity completion rate"]
+}
+
+NGO_Health -> HealthCenter {
+    goods: "Training, supplies, infrastructure improvement, mentorship"
+    quality: good
+    rationale: "Direct facility support programs showing measurable improvements"
+    kpis: ["Facilities supported", "Quality improvement scores"]
+}
+
+UN_Agencies -> FederalMOH {
+    goods: "Technical assistance, policy support, essential commodities, funding"
+    quality: good
+    rationale: "Long-standing partnerships with established coordination mechanisms"
+}
+
+UN_Agencies -> RegionalBureau {
+    goods: "Emergency response support, vaccines, nutrition supplies"
+    quality: good
+    rationale: "Responsive support especially during emergencies"
+}
+
+Pharmacy -> DistrictHospital {
+    goods: "Medicines, medical supplies, vaccines"
+    quality: stressed
+    rationale: "Frequent stockouts of essential items due to supply chain challenges"
+    kpis: ["Stock-out rate", "Order fulfillment time"]
+}
+
+Pharmacy -> HealthCenter {
+    goods: "Essential medicines, vaccines, medical supplies"
+    quality: bad
+    rationale: """
+        Health centers at end of supply chain experience frequent and
+        prolonged stockouts. Cold chain challenges affect vaccine availability.
+    """
+    kpis: ["Tracer drug availability", "Vaccine stock-out days"]
+}
+
+TrainingInstitution -> DHO {
+    goods: "Trained health workers, continuing education, student placements"
+    quality: stressed
+    rationale: "Graduate numbers insufficient to fill vacancies; quality variable"
+    kpis: ["Graduates deployed to district", "Competency assessment scores"]
+}
+
+CommunityLeaders -> PregnantWomen {
+    goods: "Health promotion, social support, influence on care-seeking"
+    quality: good
+    rationale: "Community leaders increasingly supportive of facility delivery"
+}
+
+# Missing/Absent Relationships
+PrivateClinic -> DHO {
+    goods: "Service data, disease surveillance reports, referral coordination"
+    quality: absent
+    rationale: """
+        Private facilities operate largely independent of public health
+        system. No routine data sharing or coordination mechanism exists.
+        This gap limits comprehensive health planning and surveillance.
+    """
+}
+
+TBA -> HealthCenter {
+    goods: "Referrals, delivery notifications, collaboration"
+    quality: absent
+    rationale: """
+        TBAs not formally linked to health centers. Potential referrals
+        lost due to lack of communication and mutual distrust. Major
+        opportunity gap for improving maternal outcomes.
+    """
+}
+
+# -----------------------------------------------------------------------------
+# COMPONENT ASSESSMENTS
+# -----------------------------------------------------------------------------
+
+component RegionalHospital {
+    goods: "Comprehensive emergency obstetric care, specialist services, blood bank"
+    production: 5
+    replaceability: 5
+    rationale: """
+        Only facility providing CEmONC and specialist care for the region.
+        Irreplaceable for surgical emergencies and complex cases. Critical
+        for preventing maternal and newborn deaths.
+    """
+}
+
+component DistrictHospital {
+    goods: "Basic emergency obstetric care, cesarean sections, inpatient care"
+    production: 5
+    replaceability: 4
+    rationale: """
+        Primary surgical facility for the district. Could partially be
+        replaced by upgraded health centers or private facilities, but
+        no current alternatives for emergency cesareans.
+    """
+}
+
+component HealthCenter {
+    goods: "Primary maternal and child health services, normal deliveries"
+    production: 5
+    replaceability: 3
+    rationale: """
+        Main service delivery point for most communities. Private clinics
+        and upgraded health posts could partially substitute, but public
+        health centers remain essential for equitable access.
+    """
+}
+
+component HealthPost {
+    goods: "Community-based preventive services, health promotion"
+    production: 3
+    replaceability: 3
+    rationale: """
+        Important for community reach but services could be provided
+        through mobile outreach or community health workers if needed.
+    """
+}
+
+component CHW {
+    goods: "Community outreach, health education, referral facilitation"
+    production: 4
+    replaceability: 2
+    rationale: """
+        Critical community link. Program could be restructured with
+        volunteers or different cadres, though current HEW model is
+        well-established and effective.
+    """
+}
+
+component DHO {
+    goods: "Coordination, planning, supervision, resource allocation"
+    production: 4
+    replaceability: 5
+    rationale: """
+        Essential coordination function with no alternative. NGOs cannot
+        substitute for government coordination role. Removal would
+        severely fragment the health system.
+    """
+}
+
+component NGO_Health {
+    goods: "Technical assistance, capacity building, supplementary support"
+    production: 3
+    replaceability: 2
+    rationale: """
+        Valuable support but government could function without NGOs.
+        Multiple organizations with overlapping mandates provide redundancy.
+    """
+}
+
+component Pharmacy {
+    goods: "Medicine and supply distribution"
+    production: 5
+    replaceability: 4
+    rationale: """
+        Critical supply chain function. Private suppliers could partially
+        substitute but government pharmaceutical agency essential for
+        vaccines and regulated medicines.
+    """
+}
+
+component TBA {
+    goods: "Community-based delivery care"
+    production: 2
+    replaceability: 2
+    rationale: """
+        Declining role as facility delivery increases. Services largely
+        replaceable by skilled birth attendants and CHWs for community
+        support functions.
+    """
+}
+
+# -----------------------------------------------------------------------------
+# VULNERABILITY ASSESSMENTS
+# -----------------------------------------------------------------------------
+
+# Drought Vulnerabilities
+vulnerability RegionalHospital @ drought {
+    sensitivity: 3
+    exposure: 3
+    capacity: 4
+    rationale: """
+        Moderate sensitivity to drought through increased patient load
+        (malnutrition, waterborne disease). Some exposure through water
+        supply challenges. Strong capacity with backup systems and
+        resources to manage surge.
+    """
+}
+
+vulnerability DistrictHospital @ drought {
+    sensitivity: 4
+    exposure: 4
+    capacity: 3
+    rationale: """
+        High sensitivity due to increased complicated cases and limited
+        surge capacity. Significant exposure in drought-prone district.
+        Moderate adaptive capacity with some emergency protocols.
+    """
+}
+
+vulnerability HealthCenter @ drought {
+    sensitivity: 4
+    exposure: 4
+    capacity: 2
+    rationale: """
+        Significant increase in patient load with malnutrition and
+        diarrheal cases. High exposure in rural areas. Limited capacity
+        to absorb increased demand with existing staff and supplies.
+    """
+}
+
+vulnerability HealthPost @ drought {
+    sensitivity: 4
+    exposure: 5
+    capacity: 2
+    rationale: """
+        Frontline facilities heavily impacted by community needs during
+        drought. Maximum exposure in affected communities. Very limited
+        resources and capacity to respond.
+    """
+}
+
+vulnerability CHW @ drought {
+    sensitivity: 4
+    exposure: 5
+    capacity: 2
+    rationale: """
+        CHWs live in affected communities and face personal impacts while
+        workload increases dramatically. Highest exposure. Limited support
+        and resources to cope with increased demands.
+    """
+}
+
+vulnerability PregnantWomen @ drought {
+    sensitivity: 5
+    exposure: 5
+    capacity: 1
+    rationale: """
+        Extreme sensitivity - malnutrition directly causes adverse
+        pregnancy outcomes, anemia, and complications. Maximum exposure
+        in food-insecure households. Minimal individual capacity to cope
+        without external support.
+    """
+}
+
+vulnerability Children @ drought {
+    sensitivity: 5
+    exposure: 5
+    capacity: 1
+    rationale: """
+        Children under 5 most vulnerable to malnutrition and its effects.
+        Wasting and mortality increase sharply during drought. No
+        individual capacity - entirely dependent on caregivers and system.
+    """
+}
+
+vulnerability Pharmacy @ drought {
+    sensitivity: 3
+    exposure: 2
+    capacity: 3
+    rationale: """
+        Indirect impact through increased demand for ORS, therapeutic
+        foods. Relatively shielded from direct exposure. Moderate
+        capacity to adjust supply volumes.
+    """
+}
+
+vulnerability DHO @ drought {
+    sensitivity: 3
+    exposure: 4
+    capacity: 3
+    rationale: """
+        Increased coordination demands during emergency response.
+        High exposure as district office. Moderate capacity with
+        emergency protocols but limited surge resources.
+    """
+}
+
+# Disease Outbreak Vulnerabilities
+vulnerability RegionalHospital @ disease_outbreak {
+    sensitivity: 4
+    exposure: 5
+    capacity: 3
+    rationale: """
+        Receives all severe cases requiring intensive care. Maximum
+        exposure as referral endpoint. Moderate capacity but ICU
+        beds limited and can be quickly overwhelmed.
+    """
+}
+
+vulnerability DistrictHospital @ disease_outbreak {
+    sensitivity: 5
+    exposure: 5
+    capacity: 2
+    rationale: """
+        First line for outbreak cases before referral. High exposure
+        and sensitivity. Limited isolation capacity and infection
+        prevention resources.
+    """
+}
+
+vulnerability HealthCenter @ disease_outbreak {
+    sensitivity: 4
+    exposure: 5
+    capacity: 2
+    rationale: """
+        Community outbreak response role with screening and treatment.
+        High exposure to cases. Limited capacity for isolation and
+        surge staffing.
+    """
+}
+
+vulnerability CHW @ disease_outbreak {
+    sensitivity: 4
+    exposure: 5
+    capacity: 2
+    rationale: """
+        Frontline case identification and community surveillance.
+        Maximum exposure during response activities. Limited PPE
+        and protection measures available.
+    """
+}
+
+vulnerability PregnantWomen @ disease_outbreak {
+    sensitivity: 4
+    exposure: 4
+    capacity: 2
+    rationale: """
+        Pregnancy increases susceptibility to some infections. May
+        avoid health facilities during outbreaks, missing critical
+        care. Some household-level avoidance capacity.
+    """
+}
+
+# Conflict Vulnerabilities
+vulnerability HealthCenter @ conflict {
+    sensitivity: 5
+    exposure: 4
+    capacity: 1
+    rationale: """
+        Facilities may be damaged or occupied. Staff flee affected areas.
+        Supplies cannot be delivered. High exposure if in conflict zone.
+        Minimal capacity to continue operations during active conflict.
+    """
+}
+
+vulnerability CHW @ conflict {
+    sensitivity: 5
+    exposure: 5
+    capacity: 1
+    rationale: """
+        Community-based workers cannot function during active conflict.
+        May be targeted or displaced with community. No capacity to
+        maintain services during insecurity.
+    """
+}
+
+vulnerability PregnantWomen @ conflict {
+    sensitivity: 5
+    exposure: 5
+    capacity: 1
+    rationale: """
+        Pregnant women face extreme risks during displacement with no
+        access to delivery care. Maximum exposure and sensitivity.
+        No individual coping capacity.
+    """
+}
+
+vulnerability NGO_Health @ conflict {
+    sensitivity: 4
+    exposure: 4
+    capacity: 3
+    rationale: """
+        May need to suspend operations due to security. Some capacity
+        to adapt through remote management or movement to safer areas.
+    """
+}
+
+# Economic Shock Vulnerabilities
+vulnerability Pharmacy @ economic_shock {
+    sensitivity: 5
+    exposure: 5
+    capacity: 2
+    rationale: """
+        Foreign currency shortages directly impact medicine imports.
+        Maximum exposure to economic factors. Limited capacity to
+        source alternatives or buffer stocks.
+    """
+}
+
+vulnerability PrivateClinic @ economic_shock {
+    sensitivity: 5
+    exposure: 5
+    capacity: 3
+    rationale: """
+        Revenue decline as households can't afford fees. Import costs
+        increase. Some capacity to adjust pricing and services.
+    """
+}
+
+vulnerability DHO @ economic_shock {
+    sensitivity: 4
+    exposure: 4
+    capacity: 2
+    rationale: """
+        Budget cuts and delayed disbursements affect operations.
+        Staff may leave for better opportunities. Limited capacity
+        to maintain services with reduced resources.
+    """
+}
