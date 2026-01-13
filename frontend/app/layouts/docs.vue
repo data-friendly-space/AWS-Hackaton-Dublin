@@ -38,6 +38,7 @@ const navigation = [
     items: [
       { name: 'REST API', href: '/docs/api', icon: Code },
       { name: 'Endpoints', href: '/docs/endpoints', icon: FileText },
+      { name: 'DSL Specification', href: '/docs/dsl', icon: FileText },
     ]
   },
   {

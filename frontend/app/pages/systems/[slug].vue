@@ -2,7 +2,8 @@
 import {
   ArrowLeft, Download, Network, Users, AlertTriangle, Link, Bot,
   Send, Sparkles, Component, FileText, Eye, MessageSquare,
-  ChevronRight, Info, CheckCircle2, XCircle, AlertCircle
+  ChevronRight, Info, CheckCircle2, XCircle, AlertCircle,
+  ZoomIn, ZoomOut, RotateCcw, LayoutGrid
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -19,6 +20,476 @@ const system = getSystemBySlug(slug)
 
 useHead({
   title: () => system ? `${system.name} - Resilio` : 'System Not Found',
+})
+
+// =========================================================================
+// Visualization State & Logic
+// =========================================================================
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+const canvasContainerRef = ref<HTMLDivElement | null>(null)
+const activeTab = ref('summary')
+const activeFilter = ref('all')
+const hoveredNode = ref<any>(null)
+const selectedNode = ref<any>(null)
+const tooltipVisible = ref(false)
+const tooltipX = ref(0)
+const tooltipY = ref(0)
+const visualizationInitialized = ref(false)
+
+// View state
+const scale = ref(1)
+const offsetX = ref(0)
+const offsetY = ref(0)
+
+// Drag state
+const dragging = ref(false)
+const dragNode = ref<any>(null)
+const dragStartX = ref(0)
+const dragStartY = ref(0)
+
+// Nodes and edges for visualization
+const visNodes = ref<any[]>([])
+const visEdges = ref<any[]>([])
+
+// Actor type colors
+const visColors: Record<string, string> = {
+  service_user: '#8B5CF6',
+  service_provider: '#006e33',
+  support: '#F59E0B',
+  regulatory: '#EF4444',
+  good: '#22C55E',
+  stressed: '#F59E0B',
+  bad: '#EF4444',
+  absent: '#9CA3AF'
+}
+
+function initVisualization() {
+  if (!canvasRef.value || !canvasContainerRef.value || !system) return
+
+  const canvas = canvasRef.value
+  const container = canvasContainerRef.value
+
+  // Get container dimensions
+  const containerWidth = container.clientWidth || container.offsetWidth || 800
+  const containerHeight = container.clientHeight || container.offsetHeight || 500
+
+  canvas.width = containerWidth
+  canvas.height = containerHeight
+
+  // Create nodes from actors
+  const actors = system.actors
+  const centerX = canvas.width / 2
+  const centerY = canvas.height / 2
+  const radius = Math.min(centerX, centerY) * 0.6
+
+  visNodes.value = actors.map((actor: any, i: number) => {
+    const angle = (i / actors.length) * Math.PI * 2 - Math.PI / 2
+    return {
+      id: actor.id,
+      x: centerX + Math.cos(angle) * radius,
+      y: centerY + Math.sin(angle) * radius,
+      radius: 35,
+      data: actor,
+      color: visColors[actor.actor_type] || '#6B7280'
+    }
+  })
+
+  // Create edges from relationships
+  visEdges.value = system.relationships.map((rel: any) => {
+    const fromNode = visNodes.value.find(n => n.data.name === rel.from_actor_name)
+    const toNode = visNodes.value.find(n => n.data.name === rel.to_actor_name)
+    return {
+      from: fromNode,
+      to: toNode,
+      data: rel
+    }
+  }).filter((e: any) => e.from && e.to)
+
+  // Run force-directed layout
+  runForceLayout()
+  renderCanvas()
+}
+
+function runForceLayout() {
+  const iterations = 80
+  const k = 120
+  const gravity = 0.1
+  const canvas = canvasRef.value
+  if (!canvas) return
+
+  const centerX = canvas.width / 2 / scale.value
+  const centerY = canvas.height / 2 / scale.value
+
+  for (let iter = 0; iter < iterations; iter++) {
+    // Repulsion
+    for (let i = 0; i < visNodes.value.length; i++) {
+      for (let j = i + 1; j < visNodes.value.length; j++) {
+        const dx = visNodes.value[j].x - visNodes.value[i].x
+        const dy = visNodes.value[j].y - visNodes.value[i].y
+        const dist = Math.max(1, Math.sqrt(dx * dx + dy * dy))
+        const force = (k * k) / dist
+        const fx = (dx / dist) * force
+        const fy = (dy / dist) * force
+        visNodes.value[i].x -= fx * 0.1
+        visNodes.value[i].y -= fy * 0.1
+        visNodes.value[j].x += fx * 0.1
+        visNodes.value[j].y += fy * 0.1
+      }
+    }
+
+    // Attraction along edges
+    for (const edge of visEdges.value) {
+      if (!edge.from || !edge.to) continue
+      const dx = edge.to.x - edge.from.x
+      const dy = edge.to.y - edge.from.y
+      const dist = Math.sqrt(dx * dx + dy * dy)
+      if (dist === 0) continue
+      const force = (dist - k) * 0.1
+      const fx = (dx / dist) * force
+      const fy = (dy / dist) * force
+      edge.from.x += fx * 0.1
+      edge.from.y += fy * 0.1
+      edge.to.x -= fx * 0.1
+      edge.to.y -= fy * 0.1
+    }
+
+    // Gravity
+    for (const node of visNodes.value) {
+      node.x += (centerX - node.x) * gravity * 0.1
+      node.y += (centerY - node.y) * gravity * 0.1
+    }
+  }
+
+  centerView()
+}
+
+function centerView() {
+  if (visNodes.value.length === 0 || !canvasRef.value) return
+
+  let minX = Infinity, maxX = -Infinity
+  let minY = Infinity, maxY = -Infinity
+
+  for (const node of visNodes.value) {
+    minX = Math.min(minX, node.x - node.radius)
+    maxX = Math.max(maxX, node.x + node.radius)
+    minY = Math.min(minY, node.y - node.radius)
+    maxY = Math.max(maxY, node.y + node.radius)
+  }
+
+  const width = maxX - minX
+  const height = maxY - minY
+  const graphCenterX = (minX + maxX) / 2
+  const graphCenterY = (minY + maxY) / 2
+
+  const scaleX = (canvasRef.value.width - 100) / width
+  const scaleY = (canvasRef.value.height - 100) / height
+  scale.value = Math.min(1.5, Math.min(scaleX, scaleY))
+
+  offsetX.value = canvasRef.value.width / 2 - graphCenterX * scale.value
+  offsetY.value = canvasRef.value.height / 2 - graphCenterY * scale.value
+}
+
+function isNodeVisible(node: any) {
+  if (activeFilter.value === 'all') return true
+  return node.data.actor_type === activeFilter.value
+}
+
+function renderCanvas() {
+  if (!canvasRef.value) return
+  const ctx = canvasRef.value.getContext('2d')
+  if (!ctx) return
+
+  ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+  ctx.save()
+  ctx.translate(offsetX.value, offsetY.value)
+  ctx.scale(scale.value, scale.value)
+
+  // Draw edges
+  for (const edge of visEdges.value) {
+    if (!isNodeVisible(edge.from) || !isNodeVisible(edge.to)) continue
+    drawEdge(ctx, edge)
+  }
+
+  // Draw nodes
+  for (const node of visNodes.value) {
+    if (!isNodeVisible(node)) continue
+    drawNode(ctx, node)
+  }
+
+  ctx.restore()
+}
+
+function drawNode(ctx: CanvasRenderingContext2D, node: any) {
+  const { x, y, radius, data, color } = node
+  const isHovered = node === hoveredNode.value
+  const isSelected = node === selectedNode.value
+
+  // Node background
+  ctx.beginPath()
+  ctx.arc(x, y, radius, 0, Math.PI * 2)
+  ctx.fillStyle = isHovered || isSelected ? lightenColor(color, 20) : color
+  ctx.fill()
+
+  // Selection ring
+  if (isSelected) {
+    ctx.strokeStyle = '#1A1F2E'
+    ctx.lineWidth = 3
+    ctx.stroke()
+  }
+
+  // Node letter
+  ctx.fillStyle = 'white'
+  ctx.font = `bold ${radius * 0.5}px Inter, sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(data.name?.charAt(0) || '?', x, y)
+
+  // Label
+  ctx.fillStyle = '#1A1F2E'
+  ctx.font = '11px Inter, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'top'
+  const label = data.name || node.id
+  const truncatedLabel = label.length > 15 ? label.substring(0, 15) + '...' : label
+  ctx.fillText(truncatedLabel, x, y + radius + 8)
+}
+
+function drawEdge(ctx: CanvasRenderingContext2D, edge: any) {
+  const { from, to, data } = edge
+  if (!from || !to) return
+
+  const dx = to.x - from.x
+  const dy = to.y - from.y
+  const dist = Math.sqrt(dx * dx + dy * dy)
+  if (dist === 0) return
+
+  const nx = dx / dist
+  const ny = dy / dist
+
+  const startX = from.x + nx * from.radius
+  const startY = from.y + ny * from.radius
+  const endX = to.x - nx * to.radius
+  const endY = to.y - ny * to.radius
+
+  const quality = data.quality || 'good'
+  ctx.strokeStyle = visColors[quality] || '#9CA3AF'
+  ctx.lineWidth = quality === 'absent' ? 1 : 2
+
+  if (quality === 'absent') {
+    ctx.setLineDash([5, 5])
+  } else {
+    ctx.setLineDash([])
+  }
+
+  ctx.beginPath()
+  ctx.moveTo(startX, startY)
+  ctx.lineTo(endX, endY)
+  ctx.stroke()
+
+  // Arrow
+  const arrowSize = 10
+  const angle = Math.atan2(endY - startY, endX - startX)
+  ctx.beginPath()
+  ctx.moveTo(endX, endY)
+  ctx.lineTo(endX - arrowSize * Math.cos(angle - Math.PI / 6), endY - arrowSize * Math.sin(angle - Math.PI / 6))
+  ctx.lineTo(endX - arrowSize * Math.cos(angle + Math.PI / 6), endY - arrowSize * Math.sin(angle + Math.PI / 6))
+  ctx.closePath()
+  ctx.fillStyle = ctx.strokeStyle
+  ctx.fill()
+  ctx.setLineDash([])
+}
+
+function lightenColor(hex: string, percent: number): string {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const amt = Math.round(2.55 * percent)
+  const R = Math.min(255, (num >> 16) + amt)
+  const G = Math.min(255, ((num >> 8) & 0x00FF) + amt)
+  const B = Math.min(255, (num & 0x0000FF) + amt)
+  return '#' + (0x1000000 + R * 0x10000 + G * 0x100 + B).toString(16).slice(1)
+}
+
+function screenToWorld(x: number, y: number) {
+  return {
+    x: (x - offsetX.value) / scale.value,
+    y: (y - offsetY.value) / scale.value
+  }
+}
+
+function onCanvasMouseDown(e: MouseEvent) {
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+  const world = screenToWorld(mouseX, mouseY)
+
+  for (const node of visNodes.value) {
+    if (!isNodeVisible(node)) continue
+    const dx = world.x - node.x
+    const dy = world.y - node.y
+    if (Math.sqrt(dx * dx + dy * dy) < node.radius) {
+      dragNode.value = node
+      selectedNode.value = node
+      renderCanvas()
+      return
+    }
+  }
+
+  dragging.value = true
+  dragStartX.value = mouseX - offsetX.value
+  dragStartY.value = mouseY - offsetY.value
+}
+
+function onCanvasMouseMove(e: MouseEvent) {
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+  const world = screenToWorld(mouseX, mouseY)
+
+  if (dragNode.value) {
+    dragNode.value.x = world.x
+    dragNode.value.y = world.y
+    renderCanvas()
+    return
+  }
+
+  if (dragging.value) {
+    offsetX.value = mouseX - dragStartX.value
+    offsetY.value = mouseY - dragStartY.value
+    renderCanvas()
+    return
+  }
+
+  // Check hover
+  let hovered = null
+  for (const node of visNodes.value) {
+    if (!isNodeVisible(node)) continue
+    const dx = world.x - node.x
+    const dy = world.y - node.y
+    if (Math.sqrt(dx * dx + dy * dy) < node.radius) {
+      hovered = node
+      break
+    }
+  }
+
+  if (hovered !== hoveredNode.value) {
+    hoveredNode.value = hovered
+    if (hovered) {
+      tooltipX.value = mouseX + 15
+      tooltipY.value = mouseY + 15
+      tooltipVisible.value = true
+    } else {
+      tooltipVisible.value = false
+    }
+    renderCanvas()
+  }
+}
+
+function onCanvasMouseUp() {
+  dragging.value = false
+  dragNode.value = null
+}
+
+function onCanvasWheel(e: WheelEvent) {
+  e.preventDefault()
+  const rect = canvasRef.value?.getBoundingClientRect()
+  if (!rect) return
+  const mouseX = e.clientX - rect.left
+  const mouseY = e.clientY - rect.top
+
+  const zoom = e.deltaY > 0 ? 0.9 : 1.1
+  const newScale = Math.max(0.1, Math.min(5, scale.value * zoom))
+
+  offsetX.value = mouseX - (mouseX - offsetX.value) * (newScale / scale.value)
+  offsetY.value = mouseY - (mouseY - offsetY.value) * (newScale / scale.value)
+  scale.value = newScale
+  renderCanvas()
+}
+
+function zoomInVis() {
+  scale.value = Math.min(5, scale.value * 1.2)
+  renderCanvas()
+}
+
+function zoomOutVis() {
+  scale.value = Math.max(0.1, scale.value / 1.2)
+  renderCanvas()
+}
+
+function resetViewVis() {
+  centerView()
+  renderCanvas()
+}
+
+function autoLayoutVis() {
+  if (!canvasRef.value || !canvasContainerRef.value) return
+  const canvas = canvasRef.value
+  const container = canvasContainerRef.value
+  canvas.width = container.clientWidth
+  canvas.height = container.clientHeight
+  runForceLayout()
+  renderCanvas()
+}
+
+function setFilter(filter: string) {
+  activeFilter.value = filter
+  renderCanvas()
+}
+
+// Try to initialize visualization - will retry if container not ready
+function tryInitVisualization() {
+  if (visualizationInitialized.value) return
+
+  if (!canvasRef.value || !canvasContainerRef.value) {
+    return // Elements not in DOM yet
+  }
+
+  const container = canvasContainerRef.value
+  const width = container.clientWidth || container.offsetWidth
+  const height = container.clientHeight || container.offsetHeight
+
+  if (width > 100 && height > 100) {
+    initVisualization()
+    visualizationInitialized.value = true
+  }
+}
+
+// Initialize visualization when tab becomes visible
+watch(activeTab, (newTab) => {
+  if (newTab === 'visualization' && !visualizationInitialized.value) {
+    // Try immediately, then retry a few times
+    nextTick(() => {
+      tryInitVisualization()
+      // Retry a few times in case DOM isn't ready
+      const retryTimes = [100, 200, 500, 1000]
+      retryTimes.forEach(delay => {
+        setTimeout(tryInitVisualization, delay)
+      })
+    })
+  }
+})
+
+// Also watch for canvas ref becoming available (backup initialization)
+watch(canvasRef, (newCanvas) => {
+  if (newCanvas && activeTab.value === 'visualization' && !visualizationInitialized.value) {
+    nextTick(() => {
+      tryInitVisualization()
+      setTimeout(tryInitVisualization, 100)
+    })
+  }
+})
+
+// Also handle window resize for the visualization
+onMounted(() => {
+  if (import.meta.client) {
+    window.addEventListener('resize', () => {
+      if (activeTab.value === 'visualization' && canvasRef.value && canvasContainerRef.value) {
+        canvasRef.value.width = canvasContainerRef.value.clientWidth
+        canvasRef.value.height = canvasContainerRef.value.clientHeight
+        renderCanvas()
+      }
+    })
+  }
 })
 
 // Chat state
@@ -261,7 +732,7 @@ const categoryColors: Record<string, string> = {
       </div>
 
       <!-- Main Content Tabs -->
-      <Tabs default-value="summary" class="w-full">
+      <Tabs v-model="activeTab" class="w-full">
         <TabsList class="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
           <TabsTrigger value="summary" class="gap-2">
             <Sparkles class="h-4 w-4" />
@@ -378,43 +849,163 @@ const categoryColors: Record<string, string> = {
             <CardHeader>
               <CardTitle>System Map</CardTitle>
               <CardDescription>
-                Interactive visualization of actors, relationships, and system components
+                Interactive visualization of actors, relationships, and system components. Drag nodes to reposition, scroll to zoom, pan by dragging background.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div class="relative rounded-xl border bg-white overflow-hidden">
-                <div class="absolute top-0 left-0 right-0 h-10 bg-muted/50 flex items-center px-4 gap-2">
-                  <div class="w-3 h-3 rounded-full bg-red-400" />
-                  <div class="w-3 h-3 rounded-full bg-yellow-400" />
-                  <div class="w-3 h-3 rounded-full bg-green-400" />
-                  <span class="ml-4 text-xs text-muted-foreground font-medium">{{ system.name }}</span>
+              <!-- Canvas Container -->
+              <div ref="canvasContainerRef" class="relative rounded-xl border bg-slate-100 overflow-hidden h-[500px]" @click="!visualizationInitialized && tryInitVisualization()">
+                <!-- Loading state -->
+                <div v-if="!visualizationInitialized && activeTab === 'visualization'" class="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
+                  <div class="text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-goal mx-auto mb-2"></div>
+                    <p class="text-sm text-muted-foreground">Loading visualization...</p>
+                    <button @click.stop="tryInitVisualization()" class="mt-2 text-xs text-goal underline">Click to retry</button>
+                  </div>
                 </div>
-                <div class="pt-10">
-                  <img
-                    src="/images/system-diagram.svg"
-                    alt="System Diagram"
-                    class="w-full"
-                  />
+                <canvas
+                  ref="canvasRef"
+                  class="block w-full h-full cursor-grab"
+                  @mousedown="onCanvasMouseDown"
+                  @mousemove="onCanvasMouseMove"
+                  @mouseup="onCanvasMouseUp"
+                  @mouseleave="onCanvasMouseUp"
+                  @wheel="onCanvasWheel"
+                ></canvas>
+
+                <!-- Filter Bar -->
+                <div class="absolute top-4 left-4 flex flex-wrap gap-2">
+                  <button
+                    :class="['px-3 py-1.5 text-xs font-medium rounded-full border shadow-sm transition-all', activeFilter === 'all' ? 'bg-goal text-white border-goal' : 'bg-white text-gray-700 border-gray-300 hover:border-goal']"
+                    @click="setFilter('all')"
+                  >
+                    All Actors
+                  </button>
+                  <button
+                    :class="['px-3 py-1.5 text-xs font-medium rounded-full border shadow-sm transition-all flex items-center gap-1.5', activeFilter === 'service_user' ? 'bg-violet-500 text-white border-violet-500' : 'bg-white text-gray-700 border-gray-300 hover:border-violet-500']"
+                    @click="setFilter('service_user')"
+                  >
+                    <span class="w-2 h-2 rounded-full bg-violet-500" :class="{ 'bg-white': activeFilter === 'service_user' }"></span>
+                    Users
+                  </button>
+                  <button
+                    :class="['px-3 py-1.5 text-xs font-medium rounded-full border shadow-sm transition-all flex items-center gap-1.5', activeFilter === 'service_provider' ? 'bg-goal text-white border-goal' : 'bg-white text-gray-700 border-gray-300 hover:border-goal']"
+                    @click="setFilter('service_provider')"
+                  >
+                    <span class="w-2 h-2 rounded-full bg-goal" :class="{ 'bg-white': activeFilter === 'service_provider' }"></span>
+                    Providers
+                  </button>
+                  <button
+                    :class="['px-3 py-1.5 text-xs font-medium rounded-full border shadow-sm transition-all flex items-center gap-1.5', activeFilter === 'support' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-700 border-gray-300 hover:border-amber-500']"
+                    @click="setFilter('support')"
+                  >
+                    <span class="w-2 h-2 rounded-full bg-amber-500" :class="{ 'bg-white': activeFilter === 'support' }"></span>
+                    Support
+                  </button>
+                  <button
+                    :class="['px-3 py-1.5 text-xs font-medium rounded-full border shadow-sm transition-all flex items-center gap-1.5', activeFilter === 'regulatory' ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-700 border-gray-300 hover:border-red-500']"
+                    @click="setFilter('regulatory')"
+                  >
+                    <span class="w-2 h-2 rounded-full bg-red-500" :class="{ 'bg-white': activeFilter === 'regulatory' }"></span>
+                    Regulatory
+                  </button>
+                </div>
+
+                <!-- Zoom Controls -->
+                <div class="absolute bottom-4 right-4 flex flex-col gap-2">
+                  <button
+                    class="w-10 h-10 rounded-lg bg-white border border-gray-300 shadow-sm flex items-center justify-center hover:bg-gray-50 hover:border-goal transition-all"
+                    @click="zoomInVis"
+                    title="Zoom In"
+                  >
+                    <ZoomIn class="w-5 h-5 text-gray-700" />
+                  </button>
+                  <button
+                    class="w-10 h-10 rounded-lg bg-white border border-gray-300 shadow-sm flex items-center justify-center hover:bg-gray-50 hover:border-goal transition-all"
+                    @click="zoomOutVis"
+                    title="Zoom Out"
+                  >
+                    <ZoomOut class="w-5 h-5 text-gray-700" />
+                  </button>
+                  <button
+                    class="w-10 h-10 rounded-lg bg-white border border-gray-300 shadow-sm flex items-center justify-center hover:bg-gray-50 hover:border-goal transition-all"
+                    @click="resetViewVis"
+                    title="Reset View"
+                  >
+                    <RotateCcw class="w-5 h-5 text-gray-700" />
+                  </button>
+                  <button
+                    class="w-10 h-10 rounded-lg bg-white border border-gray-300 shadow-sm flex items-center justify-center hover:bg-gray-50 hover:border-goal transition-all"
+                    @click="autoLayoutVis"
+                    title="Auto Layout"
+                  >
+                    <LayoutGrid class="w-5 h-5 text-gray-700" />
+                  </button>
+                </div>
+
+                <!-- Tooltip -->
+                <div
+                  v-if="tooltipVisible && hoveredNode"
+                  class="absolute bg-gray-900 text-white px-3 py-2 rounded-lg text-sm pointer-events-none z-50 shadow-lg"
+                  :style="{ left: tooltipX + 'px', top: tooltipY + 'px' }"
+                >
+                  <div class="font-semibold">{{ hoveredNode.data.name }}</div>
+                  <div class="text-xs text-gray-400 uppercase">{{ hoveredNode.data.actor_type_display }}</div>
+                </div>
+              </div>
+
+              <!-- Selected Node Details -->
+              <div v-if="selectedNode" class="mt-4 p-4 bg-muted rounded-lg">
+                <div class="flex items-start gap-3">
+                  <div
+                    class="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
+                    :style="{ backgroundColor: selectedNode.color }"
+                  >
+                    {{ selectedNode.data.name?.charAt(0) || '?' }}
+                  </div>
+                  <div class="flex-1">
+                    <h4 class="font-semibold">{{ selectedNode.data.name }}</h4>
+                    <p class="text-sm text-muted-foreground">{{ selectedNode.data.actor_type_display }}</p>
+                    <p class="text-sm mt-2">{{ selectedNode.data.function }}</p>
+                  </div>
                 </div>
               </div>
 
               <!-- Legend -->
               <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div class="flex items-center gap-2">
-                  <div class="w-4 h-4 rounded bg-blue-100 border-2 border-blue-300"></div>
+                  <div class="w-4 h-4 rounded-full" style="background-color: #8B5CF6;"></div>
                   <span class="text-sm">Service User</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <div class="w-4 h-4 rounded bg-green-100 border-2 border-green-500"></div>
+                  <div class="w-4 h-4 rounded-full" style="background-color: #006e33;"></div>
                   <span class="text-sm">Service Provider</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <div class="w-4 h-4 rounded bg-purple-100 border-2 border-purple-400"></div>
+                  <div class="w-4 h-4 rounded-full" style="background-color: #F59E0B;"></div>
                   <span class="text-sm">Support</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <div class="w-4 h-4 rounded bg-orange-100 border-2 border-orange-400"></div>
+                  <div class="w-4 h-4 rounded-full" style="background-color: #EF4444;"></div>
                   <span class="text-sm">Regulatory</span>
+                </div>
+              </div>
+              <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-0.5 rounded" style="background-color: #22C55E;"></div>
+                  <span class="text-sm">Good</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-0.5 rounded" style="background-color: #F59E0B;"></div>
+                  <span class="text-sm">Stressed</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-0.5 rounded" style="background-color: #EF4444;"></div>
+                  <span class="text-sm">Bad</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-0.5 rounded border border-dashed border-gray-400"></div>
+                  <span class="text-sm">Absent</span>
                 </div>
               </div>
 
