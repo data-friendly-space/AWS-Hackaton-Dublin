@@ -221,6 +221,53 @@ export class InfraStack extends cdk.Stack {
     });
 
     // ========================================
+    // Note: AWS WAF for CloudFront must be created in us-east-1 region
+    // To add WAF protection, either:
+    // 1. Create a separate CDK stack in us-east-1 with the WebACL
+    // 2. Add WAF manually via AWS Console in us-east-1 and associate with CloudFront
+    // Recommended managed rule sets:
+    // - AWSManagedRulesCommonRuleSet (OWASP top 10 protection)
+    // - AWSManagedRulesKnownBadInputsRuleSet (blocks known bad patterns)
+    // - AWSManagedRulesSQLiRuleSet (SQL injection protection)
+    // - Rate limiting rule (2000 req/5min per IP)
+    // ========================================
+
+    // ========================================
+    // Security Response Headers Policy
+    // ========================================
+    const responseHeadersPolicy = new cloudfront.ResponseHeadersPolicy(this, 'SecurityHeadersPolicy', {
+      responseHeadersPolicyName: 'ResilioSecurityHeaders',
+      securityHeadersBehavior: {
+        contentSecurityPolicy: {
+          contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:;",
+          override: true,
+        },
+        strictTransportSecurity: {
+          accessControlMaxAge: cdk.Duration.days(365),
+          includeSubdomains: true,
+          preload: true,
+          override: true,
+        },
+        contentTypeOptions: {
+          override: true,
+        },
+        frameOptions: {
+          frameOption: cloudfront.HeadersFrameOption.DENY,
+          override: true,
+        },
+        xssProtection: {
+          protection: true,
+          modeBlock: true,
+          override: true,
+        },
+        referrerPolicy: {
+          referrerPolicy: cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+          override: true,
+        },
+      },
+    });
+
+    // ========================================
     // CloudFront Distribution
     // ========================================
     const distribution = new cloudfront.Distribution(this, 'FrontendDistribution', {
@@ -228,6 +275,7 @@ export class InfraStack extends cdk.Stack {
         origin: cloudfront_origins.S3BucketOrigin.withOriginAccessControl(frontendBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+        responseHeadersPolicy: responseHeadersPolicy,
       },
       additionalBehaviors: {
         '/api/*': {
@@ -241,6 +289,7 @@ export class InfraStack extends cdk.Stack {
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
           originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          responseHeadersPolicy: responseHeadersPolicy,
         },
       },
       defaultRootObject: 'index.html',
