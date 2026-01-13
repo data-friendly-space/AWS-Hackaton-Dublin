@@ -3,7 +3,7 @@ import {
   ArrowLeft, Download, Network, Users, AlertTriangle, Link, Bot,
   Send, Sparkles, Component, FileText, Eye, MessageSquare,
   ChevronRight, Info, CheckCircle2, XCircle, AlertCircle,
-  ZoomIn, ZoomOut, RotateCcw, LayoutGrid
+  ZoomIn, ZoomOut, RotateCcw, LayoutGrid, Upload
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -655,10 +655,18 @@ const categoryColors: Record<string, string> = {
               <Badge v-if="system.country" variant="outline">{{ system.country }}</Badge>
             </div>
           </div>
-          <Button variant="outline">
-            <Download class="mr-2 h-4 w-4" />
-            Export Report
-          </Button>
+          <div class="flex gap-2">
+            <Button variant="default" as-child>
+              <NuxtLink :to="`/systems/${slug}/upload`">
+                <Upload class="mr-2 h-4 w-4" />
+                Upload Data
+              </NuxtLink>
+            </Button>
+            <Button variant="outline">
+              <Download class="mr-2 h-4 w-4" />
+              Export Report
+            </Button>
+          </div>
         </div>
       </div>
 

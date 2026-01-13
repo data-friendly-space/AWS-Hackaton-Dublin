@@ -21,6 +21,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
+      awsRegion: process.env.NUXT_PUBLIC_AWS_REGION || 'us-west-2',
+      awsAccessKeyId: process.env.NUXT_PUBLIC_AWS_ACCESS_KEY_ID || '',
+      awsSecretAccessKey: process.env.NUXT_PUBLIC_AWS_SECRET_ACCESS_KEY || '',
     },
   },
 })
