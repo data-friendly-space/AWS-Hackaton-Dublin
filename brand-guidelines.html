@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resilio Brand Guidelines | GOAL Global</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* GOAL Global Primary Colors */
+            --goal-green-dark: #04371b;
+            --goal-green: #006e33;
+            --goal-green-light: #00994d;
+
+            /* Extended Primary Palette */
+            --primary-deep: #04371b;
+            --primary-main: #006e33;
+            --primary-light: #00994d;
+            --primary-lighter: #33cc66;
+            --primary-subtle: #e6f5ec;
+
+            /* Secondary Colors - Warm accents */
+            --secondary-orange: #E85D04;
+            --secondary-amber: #F4A261;
+            --secondary-gold: #F9C74F;
+
+            /* Accent Colors */
+            --accent-blue: #0077B6;
+            --accent-sky: #48CAE4;
+            --accent-coral: #E07B54;
+
+            /* Neutrals */
+            --neutral-900: #1A1F2E;
+            --neutral-800: #2D3344;
+            --neutral-700: #4A5168;
+            --neutral-600: #6B7280;
+            --neutral-500: #9CA3AF;
+            --neutral-400: #D1D5DB;
+            --neutral-300: #E5E7EB;
+            --neutral-200: #F3F4F6;
+            --neutral-100: #F9FAFB;
+            --neutral-white: #FFFFFF;
+
+            /* Semantic Status Colors */
+            --status-good: #22C55E;
+            --status-stressed: #F59E0B;
+            --status-bad: #EF4444;
+            --status-absent: #9CA3AF;
+
+            /* Vulnerability Colors */
+            --vuln-minimal: #22C55E;
+            --vuln-low: #84CC16;
+            --vuln-medium: #F59E0B;
+            --vuln-high: #EF4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--neutral-100);
+            color: var(--neutral-900);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--goal-green-dark) 0%, var(--goal-green) 100%);
+            padding: 80px 40px;
+            text-align: center;
+            color: var(--neutral-white);
+        }
+
+        .header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .header h1 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 16px;
+        }
+
+        .header .tagline {
+            font-size: 1.25rem;
+            font-weight: 300;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .header .subtitle {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-top: 24px;
+            opacity: 0.7;
+        }
+
+        /* Navigation */
+        .nav {
+            background: var(--neutral-white);
+            padding: 16px 40px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .nav ul {
+            list-style: none;
+            display: flex;
+            gap: 32px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav a {
+            color: var(--neutral-700);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: color 0.2s;
+        }
+
+        .nav a:hover {
+            color: var(--goal-green);
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 40px;
+        }
+
+        /* Sections */
+        .section {
+            background: var(--neutral-white);
+            border-radius: 16px;
+            padding: 48px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+        }
+
+        .section-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--goal-green-dark);
+            margin-bottom: 8px;
+        }
+
+        .section-subtitle {
+            color: var(--neutral-600);
+            margin-bottom: 32px;
+            font-size: 1rem;
+        }
+
+        /* Logo Section */
+        .logo-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+
+        .logo-variant {
+            padding: 48px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .logo-variant.light {
+            background: var(--neutral-200);
+        }
+
+        .logo-variant.dark {
+            background: var(--neutral-900);
+        }
+
+        .logo-variant.primary {
+            background: var(--goal-green);
+        }
+
+        .logo-mark {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+        }
+
+        .logo-wordmark {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-wordmark.dark {
+            color: var(--goal-green-dark);
+        }
+
+        .logo-wordmark.light {
+            color: var(--neutral-white);
+        }
+
+        .logo-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--neutral-600);
+        }
+
+        .logo-variant.dark .logo-label,
+        .logo-variant.primary .logo-label {
+            color: var(--neutral-400);
+        }
+
+        /* Partnership Badge */
+        .partnership-banner {
+            background: linear-gradient(135deg, var(--goal-green-dark) 0%, var(--goal-green) 100%);
+            color: white;
+            padding: 32px 48px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+
+        .partnership-logo {
+            flex-shrink: 0;
+        }
+
+        .partnership-logo svg {
+            height: 60px;
+            width: auto;
+        }
+
+        .partnership-text h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.25rem;
+            margin-bottom: 8px;
+        }
+
+        .partnership-text p {
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+
+        /* Color Palette */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .color-group {
+            margin-bottom: 32px;
+        }
+
+        .color-group-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--neutral-600);
+            margin-bottom: 16px;
+        }
+
+        .color-card {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .color-swatch {
+            height: 100px;
+        }
+
+        .color-info {
+            padding: 16px;
+            background: var(--neutral-white);
+        }
+
+        .color-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+
+        .color-values {
+            font-size: 0.75rem;
+            color: var(--neutral-600);
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Typography */
+        .type-specimen {
+            margin-bottom: 40px;
+        }
+
+        .type-sample {
+            padding: 32px;
+            background: var(--neutral-200);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+
+        .type-sample.heading {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .type-sample.body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .type-details {
+            display: flex;
+            gap: 32px;
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+        }
+
+        .type-scale {
+            display: grid;
+            gap: 16px;
+        }
+
+        .type-scale-item {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            align-items: baseline;
+            gap: 24px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--neutral-300);
+        }
+
+        .type-scale-label {
+            font-size: 0.75rem;
+            color: var(--neutral-600);
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        /* Icons */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 24px;
+        }
+
+        .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 24px;
+            background: var(--neutral-200);
+            border-radius: 12px;
+        }
+
+        .icon-item svg {
+            width: 32px;
+            height: 32px;
+            color: var(--goal-green);
+        }
+
+        .icon-item span {
+            font-size: 0.75rem;
+            color: var(--neutral-600);
+        }
+
+        /* Status Indicators */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--neutral-200);
+            border-radius: 8px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-dot.good { background: var(--status-good); }
+        .status-dot.stressed { background: var(--status-stressed); }
+        .status-dot.bad { background: var(--status-bad); }
+        .status-dot.absent { background: var(--status-absent); }
+
+        /* Voice & Tone */
+        .voice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .voice-card {
+            padding: 24px;
+            background: var(--neutral-200);
+            border-radius: 12px;
+            border-left: 4px solid var(--goal-green);
+        }
+
+        .voice-card h4 {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--goal-green-dark);
+        }
+
+        .voice-card p {
+            font-size: 0.875rem;
+            color: var(--neutral-700);
+        }
+
+        /* Do/Don't */
+        .do-dont {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .do-section, .dont-section {
+            padding: 24px;
+            border-radius: 12px;
+        }
+
+        .do-section {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .dont-section {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .do-section h4, .dont-section h4 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .do-section h4 { color: #16a34a; }
+        .dont-section h4 { color: #dc2626; }
+
+        .do-section ul, .dont-section ul {
+            list-style: none;
+            font-size: 0.875rem;
+        }
+
+        .do-section li, .dont-section li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .do-section li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #16a34a;
+        }
+
+        .dont-section li::before {
+            content: "✗";
+            position: absolute;
+            left: 0;
+            color: #dc2626;
+        }
+
+        /* Component Examples */
+        .component-demo {
+            padding: 32px;
+            background: var(--neutral-200);
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--goal-green);
+            color: var(--neutral-white);
+        }
+
+        .btn-primary:hover {
+            background: var(--goal-green-dark);
+        }
+
+        .btn-secondary {
+            background: var(--neutral-white);
+            color: var(--goal-green);
+            border: 1px solid var(--goal-green);
+        }
+
+        .btn-secondary:hover {
+            background: var(--goal-green);
+            color: var(--neutral-white);
+        }
+
+        .btn-accent {
+            background: var(--secondary-orange);
+            color: var(--neutral-white);
+        }
+
+        .card-demo {
+            background: var(--neutral-white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            max-width: 360px;
+        }
+
+        .card-demo h4 {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-demo p {
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+            margin-bottom: 16px;
+        }
+
+        /* Mission Statement */
+        .mission {
+            background: linear-gradient(135deg, var(--goal-green-dark) 0%, var(--goal-green) 100%);
+            color: var(--neutral-white);
+            padding: 48px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+        }
+
+        .mission h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+        }
+
+        .mission p {
+            font-size: 1.125rem;
+            line-height: 1.8;
+            opacity: 0.95;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--neutral-600);
+            font-size: 0.875rem;
+        }
+
+        .footer-logos {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 32px;
+            margin-bottom: 16px;
+        }
+
+        .footer-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--goal-green);
+        }
+
+        .footer-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--neutral-400);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 60px 24px;
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .main {
+                padding: 40px 20px;
+            }
+
+            .section {
+                padding: 32px 24px;
+            }
+
+            .nav ul {
+                gap: 16px;
+            }
+
+            .partnership-banner {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+            A GOAL Global Initiative
+        </div>
+        <h1>Resilio</h1>
+        <p class="tagline">Mapping Resilience. Strengthening Systems. Protecting Communities.</p>
+        <p class="subtitle">Brand Guidelines v1.0</p>
+    </header>
+
+    <nav class="nav">
+        <ul>
+            <li><a href="#mission">Mission</a></li>
+            <li><a href="#logo">Logo</a></li>
+            <li><a href="#colors">Colors</a></li>
+            <li><a href="#typography">Typography</a></li>
+            <li><a href="#icons">Iconography</a></li>
+            <li><a href="#voice">Voice & Tone</a></li>
+            <li><a href="#components">Components</a></li>
+        </ul>
+    </nav>
+
+    <main class="main">
+        <!-- Partnership Banner -->
+        <div class="partnership-banner">
+            <div class="partnership-logo">
+                <svg viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <text x="0" y="42" font-family="Space Grotesk, sans-serif" font-size="36" font-weight="700" fill="white">GOAL</text>
+                    <text x="0" y="56" font-family="Inter, sans-serif" font-size="10" fill="rgba(255,255,255,0.7)" letter-spacing="0.1em">GLOBAL</text>
+                </svg>
+            </div>
+            <div class="partnership-text">
+                <h2>Powered by GOAL Global</h2>
+                <p>Resilio is built on GOAL's Resilience for Social Systems (R4S) methodology, developed through decades of humanitarian response experience across 14 countries worldwide.</p>
+            </div>
+        </div>
+
+        <!-- Mission -->
+        <section id="mission" class="mission">
+            <h2>Our Mission</h2>
+            <p>Resilio empowers humanitarian organizations to understand, map, and strengthen the social systems that protect vulnerable communities. Through AI-assisted analysis, we transform months of complex research into actionable insights, enabling faster, more effective resilience-building that helps communities not just survive crises, but thrive beyond them.</p>
+        </section>
+
+        <!-- Brand Essence -->
+        <section class="section">
+            <h2 class="section-title">Brand Essence</h2>
+            <p class="section-subtitle">The core principles that define Resilio</p>
+
+            <div class="voice-grid">
+                <div class="voice-card">
+                    <h4>Resilience</h4>
+                    <p>Our name comes from the Latin root meaning "to spring back." We help systems bend without breaking and recover stronger.</p>
+                </div>
+                <div class="voice-card">
+                    <h4>Connection</h4>
+                    <p>Social systems are networks of relationships. We reveal the hidden connections that make communities strong or vulnerable.</p>
+                </div>
+                <div class="voice-card">
+                    <h4>Clarity</h4>
+                    <p>We transform complex data into clear insights. Understanding precedes action, and we make the complex comprehensible.</p>
+                </div>
+                <div class="voice-card">
+                    <h4>Impact</h4>
+                    <p>Every analysis serves a purpose: protecting the most vulnerable by strengthening the systems they depend on.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Logo -->
+        <section id="logo" class="section">
+            <h2 class="section-title">Logo</h2>
+            <p class="section-subtitle">The Resilio mark represents interconnected systems and resilient networks</p>
+
+            <div class="logo-display">
+                <div class="logo-variant light">
+                    <div class="logo-mark">
+                        <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="20" stroke="#04371b" stroke-width="2.5" fill="none"/>
+                            <circle cx="24" cy="12" r="4" fill="#006e33"/>
+                            <circle cx="12" cy="28" r="4" fill="#006e33"/>
+                            <circle cx="36" cy="28" r="4" fill="#006e33"/>
+                            <circle cx="24" cy="32" r="3" fill="#E85D04"/>
+                            <path d="M24 16 L24 29" stroke="#04371b" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M15 26 L21 30" stroke="#04371b" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M33 26 L27 30" stroke="#04371b" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="logo-wordmark dark">Resilio</span>
+                    </div>
+                    <span class="logo-label">Primary on Light</span>
+                </div>
+
+                <div class="logo-variant dark">
+                    <div class="logo-mark">
+                        <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="20" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+                            <circle cx="24" cy="12" r="4" fill="#00994d"/>
+                            <circle cx="12" cy="28" r="4" fill="#00994d"/>
+                            <circle cx="36" cy="28" r="4" fill="#00994d"/>
+                            <circle cx="24" cy="32" r="3" fill="#F4A261"/>
+                            <path d="M24 16 L24 29" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M15 26 L21 30" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M33 26 L27 30" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="logo-wordmark light">Resilio</span>
+                    </div>
+                    <span class="logo-label">Reversed on Dark</span>
+                </div>
+
+                <div class="logo-variant primary">
+                    <div class="logo-mark">
+                        <svg class="logo-icon" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="20" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+                            <circle cx="24" cy="12" r="4" fill="#FFFFFF"/>
+                            <circle cx="12" cy="28" r="4" fill="#FFFFFF"/>
+                            <circle cx="36" cy="28" r="4" fill="#FFFFFF"/>
+                            <circle cx="24" cy="32" r="3" fill="#F9C74F"/>
+                            <path d="M24 16 L24 29" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M15 26 L21 30" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M33 26 L27 30" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                        <span class="logo-wordmark light">Resilio</span>
+                    </div>
+                    <span class="logo-label">White on Brand</span>
+                </div>
+            </div>
+
+            <h3 style="font-weight: 600; margin-bottom: 16px;">Logo Symbolism</h3>
+            <p style="color: var(--neutral-700); margin-bottom: 24px;">The Resilio mark represents interconnected actors within a social system. The outer circle symbolizes the system boundary, while the three connected nodes represent different actor types (service providers, regulators, and support actors). The central highlighted node represents the service user at the heart of every system.</p>
+
+            <div class="do-dont">
+                <div class="do-section">
+                    <h4><span>Do</span></h4>
+                    <ul>
+                        <li>Maintain minimum clear space equal to the height of the "R"</li>
+                        <li>Use approved color combinations only</li>
+                        <li>Scale proportionally</li>
+                        <li>Use on clean, uncluttered backgrounds</li>
+                    </ul>
+                </div>
+                <div class="dont-section">
+                    <h4><span>Don't</span></h4>
+                    <ul>
+                        <li>Stretch or distort the logo</li>
+                        <li>Add effects like shadows or gradients</li>
+                        <li>Place on busy backgrounds</li>
+                        <li>Change the logo colors</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Colors -->
+        <section id="colors" class="section">
+            <h2 class="section-title">Color Palette</h2>
+            <p class="section-subtitle">Built on GOAL Global's brand colors with extended functional palette</p>
+
+            <div class="color-group">
+                <h3 class="color-group-title">GOAL Global Primary Colors</h3>
+                <p style="color: var(--neutral-600); margin-bottom: 16px; font-size: 0.875rem;">Core brand colors from GOAL Global representing growth, sustainability, and humanitarian action.</p>
+                <div class="color-grid">
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--goal-green-dark);"></div>
+                        <div class="color-info">
+                            <div class="color-name">GOAL Dark Green</div>
+                            <div class="color-values">#04371B · RGB(4, 55, 27)</div>
+                        </div>
+                    </div>
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--goal-green);"></div>
+                        <div class="color-info">
+                            <div class="color-name">GOAL Green</div>
+                            <div class="color-values">#006E33 · RGB(0, 110, 51)</div>
+                        </div>
+                    </div>
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--goal-green-light);"></div>
+                        <div class="color-info">
+                            <div class="color-name">GOAL Light Green</div>
+                            <div class="color-values">#00994D · RGB(0, 153, 77)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h3 class="color-group-title">Secondary Colors</h3>
+                <p style="color: var(--neutral-600); margin-bottom: 16px; font-size: 0.875rem;">Warm accent colors for calls-to-action, highlights, and emphasis.</p>
+                <div class="color-grid">
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--secondary-orange);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Action Orange</div>
+                            <div class="color-values">#E85D04 · RGB(232, 93, 4)</div>
+                        </div>
+                    </div>
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--secondary-amber);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Amber</div>
+                            <div class="color-values">#F4A261 · RGB(244, 162, 97)</div>
+                        </div>
+                    </div>
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--secondary-gold);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Gold</div>
+                            <div class="color-values">#F9C74F · RGB(249, 199, 79)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h3 class="color-group-title">Status Colors</h3>
+                <p style="color: var(--neutral-600); margin-bottom: 16px; font-size: 0.875rem;">Semantic colors for relationship quality indicators in system mapping.</p>
+                <div class="status-grid">
+                    <div class="status-item">
+                        <span class="status-dot good"></span>
+                        <div>
+                            <strong>Good</strong>
+                            <div style="font-size: 0.75rem; color: var(--neutral-600);">#22C55E</div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-dot stressed"></span>
+                        <div>
+                            <strong>Stressed</strong>
+                            <div style="font-size: 0.75rem; color: var(--neutral-600);">#F59E0B</div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-dot bad"></span>
+                        <div>
+                            <strong>Bad</strong>
+                            <div style="font-size: 0.75rem; color: var(--neutral-600);">#EF4444</div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-dot absent"></span>
+                        <div>
+                            <strong>Absent</strong>
+                            <div style="font-size: 0.75rem; color: var(--neutral-600);">#9CA3AF</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="color-group">
+                <h3 class="color-group-title">Accent Colors</h3>
+                <div class="color-grid">
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--accent-blue);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Ocean Blue</div>
+                            <div class="color-values">#0077B6 · RGB(0, 119, 182)</div>
+                        </div>
+                    </div>
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--accent-sky);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Sky</div>
+                            <div class="color-values">#48CAE4 · RGB(72, 202, 228)</div>
+                        </div>
+                    </div>
+                    <div class="color-card">
+                        <div class="color-swatch" style="background: var(--accent-coral);"></div>
+                        <div class="color-info">
+                            <div class="color-name">Coral</div>
+                            <div class="color-values">#E07B54 · RGB(224, 123, 84)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section id="typography" class="section">
+            <h2 class="section-title">Typography</h2>
+            <p class="section-subtitle">Clear, accessible type that communicates with precision and warmth</p>
+
+            <div class="type-specimen">
+                <div class="type-sample heading" style="font-size: 2.5rem; font-weight: 700;">
+                    Space Grotesk
+                </div>
+                <div class="type-details">
+                    <span><strong>Usage:</strong> Headlines, Logo, Display</span>
+                    <span><strong>Weights:</strong> Medium (500), SemiBold (600), Bold (700)</span>
+                </div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-sample body" style="font-size: 1.125rem;">
+                    Inter - The quick brown fox jumps over the lazy dog. 0123456789
+                </div>
+                <div class="type-details">
+                    <span><strong>Usage:</strong> Body text, UI elements, Captions</span>
+                    <span><strong>Weights:</strong> Light (300), Regular (400), Medium (500), SemiBold (600), Bold (700)</span>
+                </div>
+            </div>
+
+            <h3 style="font-weight: 600; margin: 32px 0 16px;">Type Scale</h3>
+            <div class="type-scale">
+                <div class="type-scale-item">
+                    <span class="type-scale-label">Display / 48px</span>
+                    <span style="font-family: 'Space Grotesk'; font-size: 3rem; font-weight: 700; color: var(--goal-green-dark);">Resilio</span>
+                </div>
+                <div class="type-scale-item">
+                    <span class="type-scale-label">H1 / 32px</span>
+                    <span style="font-family: 'Space Grotesk'; font-size: 2rem; font-weight: 600;">System Overview</span>
+                </div>
+                <div class="type-scale-item">
+                    <span class="type-scale-label">H2 / 24px</span>
+                    <span style="font-family: 'Space Grotesk'; font-size: 1.5rem; font-weight: 600;">Actor Assessment</span>
+                </div>
+                <div class="type-scale-item">
+                    <span class="type-scale-label">H3 / 20px</span>
+                    <span style="font-family: 'Inter'; font-size: 1.25rem; font-weight: 600;">Relationship Quality</span>
+                </div>
+                <div class="type-scale-item">
+                    <span class="type-scale-label">Body / 16px</span>
+                    <span style="font-family: 'Inter'; font-size: 1rem;">This actor provides essential services to the community health system.</span>
+                </div>
+                <div class="type-scale-item">
+                    <span class="type-scale-label">Small / 14px</span>
+                    <span style="font-family: 'Inter'; font-size: 0.875rem; color: var(--neutral-600);">Last updated 3 days ago</span>
+                </div>
+                <div class="type-scale-item">
+                    <span class="type-scale-label">Caption / 12px</span>
+                    <span style="font-family: 'Inter'; font-size: 0.75rem; color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.05em;">Vulnerability Score</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Iconography -->
+        <section id="icons" class="section">
+            <h2 class="section-title">Iconography</h2>
+            <p class="section-subtitle">System icons that represent actor types and relationships</p>
+
+            <h3 style="font-weight: 600; margin-bottom: 16px;">Actor Type Icons</h3>
+            <div class="icon-grid" style="margin-bottom: 32px;">
+                <div class="icon-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    <span>Service User</span>
+                </div>
+                <div class="icon-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                    <span>Service Provider</span>
+                </div>
+                <div class="icon-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <span>Support</span>
+                </div>
+                <div class="icon-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    <span>Regulatory</span>
+                </div>
+            </div>
+
+            <h3 style="font-weight: 600; margin-bottom: 16px;">Relationship Icons</h3>
+            <div class="icon-grid">
+                <div class="icon-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                        <polyline points="12 5 19 12 12 19"/>
+                    </svg>
+                    <span>Output</span>
+                </div>
+                <div class="icon-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"/>
+                        <polyline points="12 19 5 12 12 5"/>
+                    </svg>
+                    <span>Input</span>
+                </div>
+                <div class="icon-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="16 3 21 3 21 8"/>
+                        <line x1="4" y1="20" x2="21" y2="3"/>
+                        <polyline points="21 16 21 21 16 21"/>
+                        <line x1="15" y1="15" x2="21" y2="21"/>
+                        <line x1="4" y1="4" x2="9" y2="9"/>
+                    </svg>
+                    <span>Bidirectional</span>
+                </div>
+                <div class="icon-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+                    </svg>
+                    <span>Absent</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Voice & Tone -->
+        <section id="voice" class="section">
+            <h2 class="section-title">Voice & Tone</h2>
+            <p class="section-subtitle">How Resilio communicates with users and stakeholders</p>
+
+            <div class="voice-grid" style="margin-bottom: 32px;">
+                <div class="voice-card">
+                    <h4>Clear</h4>
+                    <p>We translate complex systems analysis into understandable insights. Avoid jargon; use plain language.</p>
+                </div>
+                <div class="voice-card">
+                    <h4>Purposeful</h4>
+                    <p>Every word serves the mission. Focus on actionable information that helps protect communities.</p>
+                </div>
+                <div class="voice-card">
+                    <h4>Respectful</h4>
+                    <p>We honor the dignity of vulnerable communities and the expertise of local practitioners.</p>
+                </div>
+                <div class="voice-card">
+                    <h4>Empowering</h4>
+                    <p>We provide tools and insights, not prescriptions. Users are the experts in their contexts.</p>
+                </div>
+            </div>
+
+            <div class="do-dont">
+                <div class="do-section">
+                    <h4><span>Write</span></h4>
+                    <ul>
+                        <li>"This actor is highly vulnerable to drought conditions"</li>
+                        <li>"The relationship between actors A and B is stressed"</li>
+                        <li>"Consider strengthening this connection"</li>
+                        <li>"3 actors require immediate attention"</li>
+                    </ul>
+                </div>
+                <div class="dont-section">
+                    <h4><span>Avoid</span></h4>
+                    <ul>
+                        <li>"The stakeholder matrix indicates suboptimal synergies"</li>
+                        <li>"Problematic relationship detected!!!"</li>
+                        <li>"You must fix this immediately"</li>
+                        <li>"Critical failure in system resilience paradigm"</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Components -->
+        <section id="components" class="section">
+            <h2 class="section-title">UI Components</h2>
+            <p class="section-subtitle">Core interface elements for the Resilio Mapping Tool</p>
+
+            <h3 style="font-weight: 600; margin-bottom: 16px;">Buttons</h3>
+            <div class="component-demo">
+                <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                    <button class="btn btn-primary">Primary Action</button>
+                    <button class="btn btn-secondary">Secondary Action</button>
+                    <button class="btn btn-accent">Urgent Action</button>
+                </div>
+            </div>
+
+            <h3 style="font-weight: 600; margin-bottom: 16px;">Actor Card</h3>
+            <div class="component-demo">
+                <div class="card-demo">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+                        <div style="width: 40px; height: 40px; background: var(--goal-green); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 style="margin: 0;">District Health Office</h4>
+                            <span style="font-size: 0.75rem; color: var(--neutral-500);">Service Provider</span>
+                        </div>
+                    </div>
+                    <p>Coordinates health service delivery across the district, manages resource allocation, and supervises health facilities.</p>
+                    <div style="display: flex; gap: 8px;">
+                        <span style="font-size: 0.75rem; padding: 4px 8px; background: var(--neutral-200); border-radius: 4px;">12 Relationships</span>
+                        <span style="font-size: 0.75rem; padding: 4px 8px; background: rgba(239, 68, 68, 0.1); color: #dc2626; border-radius: 4px;">High Vulnerability</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="font-weight: 600; margin-bottom: 16px;">Vulnerability Score</h3>
+            <div class="component-demo">
+                <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #22C55E 0%, #4ade80 100%); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Space Grotesk'; font-size: 1.5rem; font-weight: 700;">0.8</div>
+                        <span style="font-size: 0.875rem; color: var(--neutral-600); margin-top: 8px; display: block;">Minimal</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #84cc16 0%, #bef264 100%); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Space Grotesk'; font-size: 1.5rem; font-weight: 700;">5.2</div>
+                        <span style="font-size: 0.875rem; color: var(--neutral-600); margin-top: 8px; display: block;">Low</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #F59E0B 0%, #fcd34d 100%); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Space Grotesk'; font-size: 1.5rem; font-weight: 700;">12.4</div>
+                        <span style="font-size: 0.875rem; color: var(--neutral-600); margin-top: 8px; display: block;">Medium</span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #EF4444 0%, #f87171 100%); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Space Grotesk'; font-size: 1.5rem; font-weight: 700;">18.7</div>
+                        <span style="font-size: 0.875rem; color: var(--neutral-600); margin-top: 8px; display: block;">High</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Application -->
+        <section class="section">
+            <h2 class="section-title">Application Examples</h2>
+            <p class="section-subtitle">How the brand comes together in practice</p>
+
+            <div style="background: var(--neutral-200); padding: 32px; border-radius: 12px;">
+                <div style="background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.1);">
+                    <!-- App Header -->
+                    <div style="background: linear-gradient(135deg, var(--goal-green-dark) 0%, var(--goal-green) 100%); padding: 20px 24px; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="24" cy="24" r="20" stroke="#FFFFFF" stroke-width="2.5" fill="none"/>
+                                <circle cx="24" cy="12" r="4" fill="#FFFFFF"/>
+                                <circle cx="12" cy="28" r="4" fill="#FFFFFF"/>
+                                <circle cx="36" cy="28" r="4" fill="#FFFFFF"/>
+                                <circle cx="24" cy="32" r="3" fill="#F9C74F"/>
+                                <path d="M24 16 L24 29" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M15 26 L21 30" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                                <path d="M33 26 L27 30" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            <span style="color: white; font-family: 'Space Grotesk'; font-weight: 700; font-size: 1.25rem;">Resilio</span>
+                        </div>
+                        <div style="display: flex; gap: 16px; color: white; font-size: 0.875rem;">
+                            <span style="opacity: 0.8;">RMNCAH System</span>
+                            <span style="opacity: 0.8;">|</span>
+                            <span>Eastern Region</span>
+                        </div>
+                    </div>
+                    <!-- App Content Preview -->
+                    <div style="padding: 24px; background: var(--neutral-100);">
+                        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                            <div style="flex: 1; background: white; padding: 16px; border-radius: 8px;">
+                                <span style="font-size: 0.75rem; color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.05em;">Actors Mapped</span>
+                                <div style="font-family: 'Space Grotesk'; font-size: 2rem; font-weight: 700; color: var(--goal-green-dark);">24</div>
+                            </div>
+                            <div style="flex: 1; background: white; padding: 16px; border-radius: 8px;">
+                                <span style="font-size: 0.75rem; color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.05em;">Relationships</span>
+                                <div style="font-family: 'Space Grotesk'; font-size: 2rem; font-weight: 700; color: var(--goal-green-dark);">67</div>
+                            </div>
+                            <div style="flex: 1; background: white; padding: 16px; border-radius: 8px;">
+                                <span style="font-size: 0.75rem; color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.05em;">High Vulnerability</span>
+                                <div style="font-family: 'Space Grotesk'; font-size: 2rem; font-weight: 700; color: #EF4444;">5</div>
+                            </div>
+                        </div>
+                        <div style="height: 120px; background: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--neutral-400);">
+                            [ System Map Visualization ]
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-logos">
+            <div class="footer-logo">Resilio</div>
+            <div class="footer-divider"></div>
+            <div class="footer-logo" style="color: var(--goal-green-dark);">GOAL</div>
+        </div>
+        <p>A GOAL Global Initiative | AWS Breaking Barriers Hackathon 2026</p>
+        <p style="margin-top: 8px;">Mapping Resilience. Strengthening Systems. Protecting Communities.</p>
+    </footer>
+</body>
+</html>
