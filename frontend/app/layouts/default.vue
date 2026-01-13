@@ -29,6 +29,14 @@ const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
             Systems
           </NuxtLink>
 
+          <NuxtLink
+            v-if="isAuthenticated"
+            to="/docs"
+            class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Docs
+          </NuxtLink>
+
           <template v-if="isAuthenticated && isSuperadmin">
             <NuxtLink
               to="/admin"
