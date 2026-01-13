@@ -107,6 +107,19 @@ export class InfraStack extends cdk.Stack {
     });
 
     // ========================================
+    // Database Secret Rotation
+    // ========================================
+    // Enable automatic rotation of database credentials every 30 days
+    // Uses AWS managed rotation Lambda for PostgreSQL
+    database.addRotationSingleUser({
+      automaticallyAfter: cdk.Duration.days(30),
+      excludeCharacters: ' %+~`#$&*()|[]{}:;<>?!\'/@"\\',
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
+    });
+
+    // ========================================
     // ECS Cluster
     // ========================================
     const cluster = new ecs.Cluster(this, 'ResilioCluster', {

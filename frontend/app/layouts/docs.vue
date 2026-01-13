@@ -2,7 +2,7 @@
 import {
   Book, Server, Database, Code, Rocket, Users, Network,
   Shield, Cpu, FileText, ChevronRight, Menu, X, Home,
-  ExternalLink, Github, ClipboardCheck
+  ExternalLink, Github, ClipboardCheck, Wrench
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 
@@ -47,6 +47,7 @@ const navigation = [
       { name: 'AWS Infrastructure', href: '/docs/aws', icon: Cpu },
       { name: 'Configuration', href: '/docs/configuration', icon: FileText },
       { name: 'Well-Architected Review', href: '/docs/well-architected', icon: ClipboardCheck },
+      { name: 'Operations Runbook', href: '/docs/runbook', icon: Wrench },
     ]
   }
 ]

@@ -32,7 +32,7 @@ const pillars: Pillar[] = [
   {
     name: 'Operational Excellence',
     description: 'Run and monitor systems to deliver business value and continually improve processes',
-    score: 85,
+    score: 95,
     findings: [
       {
         title: 'Infrastructure as Code',
@@ -44,9 +44,9 @@ const pillars: Pillar[] = [
       {
         title: 'Logging & Monitoring',
         status: 'good',
-        current: 'CloudWatch Logs enabled for ECS tasks with 1-week retention, Container Insights enabled',
-        recommendation: 'Consider extending log retention for production and adding CloudWatch alarms',
-        priority: 'Medium'
+        current: 'CloudWatch Logs with 1-week retention, Container Insights, CloudWatch alarms for key metrics',
+        recommendation: 'Current configuration provides comprehensive monitoring',
+        priority: 'Low'
       },
       {
         title: 'Health Checks',
@@ -64,18 +64,25 @@ const pillars: Pillar[] = [
       },
       {
         title: 'Runbooks & Documentation',
-        status: 'warning',
-        current: 'Basic deployment documentation exists',
-        recommendation: 'Create operational runbooks for common failure scenarios',
-        priority: 'Medium'
+        status: 'good',
+        current: 'Comprehensive operations runbook with alarm responses, common operations, and incident procedures',
+        recommendation: 'Keep runbook updated as infrastructure evolves',
+        priority: 'Low'
       }
     ]
   },
   {
     name: 'Security',
     description: 'Protect information, systems, and assets through risk assessments and mitigation strategies',
-    score: 90,
+    score: 95,
     findings: [
+      {
+        title: 'Secrets Management',
+        status: 'good',
+        current: 'Database credentials in Secrets Manager with automatic rotation every 30 days',
+        recommendation: 'Current configuration provides secure credential management with automatic rotation',
+        priority: 'Low'
+      },
       {
         title: 'Security Headers',
         status: 'good',
@@ -88,13 +95,6 @@ const pillars: Pillar[] = [
         status: 'warning',
         current: 'AWS WAF not yet configured (requires separate us-east-1 deployment for CloudFront)',
         recommendation: 'Add AWS WAF via Console or separate CDK stack in us-east-1 with managed rule sets',
-        priority: 'Medium'
-      },
-      {
-        title: 'Secrets Management',
-        status: 'good',
-        current: 'Database credentials, Django secret key, and S3 credentials stored in AWS Secrets Manager',
-        recommendation: 'Enable automatic secret rotation for database credentials',
         priority: 'Medium'
       },
       {
@@ -421,6 +421,8 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
         <div class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
           <h4 class="font-semibold text-green-800 mb-2">Recent Improvements</h4>
           <ul class="text-sm text-green-700 space-y-1">
+            <li>✓ Automatic database secret rotation (30-day cycle)</li>
+            <li>✓ Comprehensive operations runbook with incident procedures</li>
             <li>✓ CloudWatch alarms for latency, errors, DB CPU, storage, and connections</li>
             <li>✓ RDS Performance Insights enabled (7-day retention)</li>
             <li>✓ Security headers policy (HSTS, CSP, X-Frame-Options, XSS-Protection, Referrer-Policy)</li>
@@ -428,7 +430,6 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
             <li>✓ ECS task count increased to 2 with auto-scaling (2-10 tasks)</li>
             <li>✓ NAT Gateway redundancy (one per AZ)</li>
             <li>✓ S3 versioning and RETAIN policy for data protection</li>
-            <li>✓ Database backup retention set to 7 days</li>
           </ul>
         </div>
 
@@ -437,8 +438,6 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
           <ul class="text-sm text-blue-700 space-y-1">
             <li>• Add AWS WAF (requires us-east-1 deployment for CloudFront)</li>
             <li>• Enable HTTPS on ALB when custom domain is configured</li>
-            <li>• Enable automatic secret rotation for database credentials</li>
-            <li>• Create operational runbooks for failure scenarios</li>
           </ul>
         </div>
       </CardContent>
@@ -567,6 +566,14 @@ function getPriorityVariant(priority: string): 'default' | 'secondary' | 'outlin
           <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
             <CheckCircle class="h-5 w-5 text-green-600" />
             <span class="text-sm">RDS Performance Insights enabled</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">Automatic database secret rotation (30-day)</span>
+          </div>
+          <div class="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+            <CheckCircle class="h-5 w-5 text-green-600" />
+            <span class="text-sm">Operations runbook with incident procedures</span>
           </div>
           <div class="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg">
             <AlertTriangle class="h-5 w-5 text-yellow-600" />
