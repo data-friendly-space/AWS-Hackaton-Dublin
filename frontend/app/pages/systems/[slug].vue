@@ -18,6 +18,10 @@ const slug = route.params.slug as string
 const { getSystemBySlug } = useMockSystems()
 const system = getSystemBySlug(slug)
 
+// Auth check for upload permissions
+const { isSuperadmin, isR4SManager } = useAuth()
+const canUpload = computed(() => isSuperadmin.value || isR4SManager.value)
+
 useHead({
   title: () => system ? `${system.name} - Resilio` : 'System Not Found',
 })
@@ -656,12 +660,12 @@ const categoryColors: Record<string, string> = {
             </div>
           </div>
           <div class="flex gap-2">
-            <Button variant="default" as-child>
-              <NuxtLink :to="`/systems/${slug}/upload`">
+            <NuxtLink v-if="canUpload" :to="`/systems/${slug}/upload`">
+              <Button variant="outline">
                 <Upload class="mr-2 h-4 w-4" />
                 Upload Data
-              </NuxtLink>
-            </Button>
+              </Button>
+            </NuxtLink>
             <Button variant="outline">
               <Download class="mr-2 h-4 w-4" />
               Export Report

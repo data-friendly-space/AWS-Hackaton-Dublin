@@ -12,8 +12,9 @@ const slug = route.params.slug as string
 const { getSystemBySlug } = useMockSystems()
 const system = getSystemBySlug(slug)
 
-// Auth check
-const { isAuthenticated } = useAuth()
+// Auth check - only Superadmins and R4S Managers can upload
+const { isAuthenticated, isSuperadmin, isR4SManager } = useAuth()
+const canUpload = computed(() => isSuperadmin.value || isR4SManager.value)
 
 useHead({
   title: () => system ? `Upload Data - ${system.name} - Resilio` : 'Upload Data',
@@ -188,6 +189,21 @@ const hasErrors = computed(() => {
         </Button>
       </Alert>
 
+      <!-- Authorization Required - user is logged in but doesn't have permission -->
+      <Alert v-else-if="!canUpload" class="mb-8" variant="destructive">
+        <AlertCircle class="h-4 w-4" />
+        <AlertTitle>Access Denied</AlertTitle>
+        <AlertDescription>
+          You do not have permission to upload files. Only Superadmins and assigned R4S Managers can upload data to systems.
+        </AlertDescription>
+        <Button variant="outline" size="sm" class="mt-4" as-child>
+          <NuxtLink :to="`/systems/${slug}`">
+            <ArrowLeft class="mr-2 h-4 w-4" />
+            Back to System
+          </NuxtLink>
+        </Button>
+      </Alert>
+
       <!-- Header -->
       <div class="mb-8">
         <NuxtLink :to="`/systems/${slug}`" class="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
@@ -205,8 +221,8 @@ const hasErrors = computed(() => {
         </div>
       </div>
 
-      <!-- Upload Info (only visible when authenticated) -->
-      <template v-if="isAuthenticated">
+      <!-- Upload Info (only visible when authenticated and authorized) -->
+      <template v-if="isAuthenticated && canUpload">
         <Card class="mb-6">
           <CardContent class="pt-6">
             <div class="flex items-center gap-4">

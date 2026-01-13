@@ -12,6 +12,10 @@ useHead({
 const { getAllSystems } = useMockSystems()
 const systems = getAllSystems()
 
+// Auth check - only Superadmins and R4S Managers can create new systems
+const { isSuperadmin, isR4SManager } = useAuth()
+const canCreateSystem = computed(() => isSuperadmin.value || isR4SManager.value)
+
 const sectorColors: Record<string, string> = {
   health: 'bg-red-100 text-red-700',
   education: 'bg-blue-100 text-blue-700',
@@ -45,7 +49,7 @@ function getResilienceLabel(score: number): string {
           Social systems mapped using the R4S methodology
         </p>
       </div>
-      <Button>
+      <Button v-if="canCreateSystem">
         <Plus class="mr-2 h-4 w-4" />
         New System
       </Button>

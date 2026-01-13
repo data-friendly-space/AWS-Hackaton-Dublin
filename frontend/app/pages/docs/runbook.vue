@@ -407,9 +407,30 @@ aws --profile resilio s3 sync .output/public s3://BUCKET_NAME --delete
           <div class="border rounded-lg p-4">
             <h4 class="font-semibold mb-2">Secret Rotation</h4>
             <p class="text-sm text-muted-foreground mb-2">
-              Database credentials are automatically rotated every 30 days. The rotation Lambda handles this seamlessly.
+              Database credentials are automatically rotated every 30 days by the rotation Lambda.
             </p>
-            <p class="text-sm"><strong>Impact:</strong> None (ECS tasks automatically get new credentials)</p>
+            <div class="bg-yellow-50 border border-yellow-200 rounded p-3 mt-3 mb-3">
+              <p class="text-sm font-semibold text-yellow-800 mb-2">Important: ECS Task Credential Refresh</p>
+              <p class="text-sm text-yellow-700">
+                After secret rotation, running ECS tasks retain their cached database credentials. If you see 500 errors
+                on API endpoints (especially after rotation), the tasks may have stale credentials.
+              </p>
+            </div>
+            <p class="text-sm mb-2"><strong>Diagnosing stale credentials:</strong></p>
+            <div class="bg-gray-900 text-gray-100 p-3 rounded-lg text-sm font-mono overflow-x-auto mb-3">
+              <pre># Check if database auth is failing
+curl -s http://ALB_URL/api/health/ | jq
+# Look for: "database": "error - auth failed"</pre>
+            </div>
+            <p class="text-sm mb-2"><strong>Resolution:</strong></p>
+            <div class="bg-gray-900 text-gray-100 p-3 rounded-lg text-sm font-mono overflow-x-auto mb-2">
+              <pre># Force ECS tasks to restart and get fresh credentials
+aws --profile resilio ecs update-service \
+  --cluster ResilioCluster \
+  --service BackendService \
+  --force-new-deployment</pre>
+            </div>
+            <p class="text-sm text-muted-foreground">New tasks will pull fresh credentials from Secrets Manager.</p>
           </div>
 
           <div class="border rounded-lg p-4">

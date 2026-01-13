@@ -20,7 +20,19 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
+      // Use relative path so API calls go through CloudFront (which proxies to ALB)
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
+    },
+  },
+
+  // Pre-render upload pages for each system
+  nitro: {
+    prerender: {
+      routes: [
+        '/systems/rmncah-eastern-ethiopia/upload',
+        '/systems/wash-system-zimbabwe/upload',
+        '/systems/market-system-south-sudan/upload',
+      ],
     },
   },
 })

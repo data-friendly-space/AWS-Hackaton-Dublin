@@ -141,6 +141,12 @@ Content-Type: application/json
               <td class="py-3 px-4 text-center text-amber-600">Project only</td>
             </tr>
             <tr class="border-b">
+              <td class="py-3 px-4">Upload data to systems</td>
+              <td class="py-3 px-4 text-center text-green-600">✓</td>
+              <td class="py-3 px-4 text-center text-green-600">✓</td>
+              <td class="py-3 px-4 text-center text-red-600">✗</td>
+            </tr>
+            <tr class="border-b">
               <td class="py-3 px-4">Manage projects</td>
               <td class="py-3 px-4 text-center text-green-600">✓</td>
               <td class="py-3 px-4 text-center text-green-600">✓</td>
