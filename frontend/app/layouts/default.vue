@@ -22,6 +22,7 @@ const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
 
         <nav class="flex items-center gap-4">
           <NuxtLink
+            v-if="isAuthenticated"
             to="/systems"
             class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
