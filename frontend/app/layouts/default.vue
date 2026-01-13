@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { Menu } from 'lucide-vue-next'
+import { User, LogOut, Settings, Shield } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+
+const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
 </script>
 
 <template>
@@ -26,12 +29,43 @@ import { Menu } from 'lucide-vue-next'
           >
             Systems
           </NuxtLink>
+
+          <template v-if="isAuthenticated && isSuperadmin">
+            <NuxtLink
+              to="/admin"
+              class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Admin
+            </NuxtLink>
+          </template>
+
           <NuxtLink
             to="/about"
             class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
           >
             About
           </NuxtLink>
+
+          <!-- Auth Section -->
+          <div class="flex items-center gap-2 ml-4 pl-4 border-l">
+            <template v-if="isAuthenticated">
+              <NuxtLink
+                to="/profile"
+                class="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <User class="h-4 w-4" />
+                <span class="hidden sm:inline">{{ user?.first_name }}</span>
+              </NuxtLink>
+              <Button variant="ghost" size="sm" @click="logout">
+                <LogOut class="h-4 w-4" />
+              </Button>
+            </template>
+            <template v-else>
+              <Button variant="default" size="sm" as-child>
+                <NuxtLink to="/login">Sign in</NuxtLink>
+              </Button>
+            </template>
+          </div>
         </nav>
       </div>
     </header>
