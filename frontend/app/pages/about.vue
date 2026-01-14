@@ -94,7 +94,7 @@ const assessmentTypes = [
     </section>
 
     <!-- R4S Methodology -->
-    <section class="bg-muted/50 py-16">
+    <section class="bg-gray-200 py-16">
       <div class="container">
         <h2 class="text-2xl font-bold text-goal-dark mb-8">R4S Methodology</h2>
         <div class="grid gap-6 md:grid-cols-2">

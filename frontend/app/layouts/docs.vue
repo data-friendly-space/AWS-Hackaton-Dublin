@@ -58,7 +58,7 @@ function isActive(href: string) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-background">
+  <div class="min-h-screen bg-gray-100">
     <!-- Mobile sidebar toggle -->
     <div class="lg:hidden fixed top-16 left-4 z-50">
       <Button variant="outline" size="icon" @click="sidebarOpen = !sidebarOpen">
@@ -70,7 +70,7 @@ function isActive(href: string) {
     <!-- Sidebar -->
     <aside
       :class="[
-        'fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-72 border-r bg-background transition-transform duration-200 ease-in-out overflow-y-auto',
+        'fixed top-16 left-0 z-40 h-[calc(100vh-4rem)] w-72 border-r-2 border-gray-300 bg-white shadow-sm transition-transform duration-200 ease-in-out overflow-y-auto',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
       ]"
     >
@@ -145,7 +145,7 @@ function isActive(href: string) {
 
     <!-- Main content -->
     <main class="lg:pl-72">
-      <div class="max-w-4xl mx-auto px-6 py-12">
+      <div class="max-w-4xl mx-auto px-6 py-12 bg-white min-h-screen shadow-sm">
         <slot />
       </div>
     </main>

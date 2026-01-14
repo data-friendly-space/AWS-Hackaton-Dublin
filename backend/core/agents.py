@@ -16,7 +16,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
 from rest_framework import status
 
-from .models import System, SystemVisualization
+from .models import System, SystemVisualization, RiskScenario
+import yaml
 
 
 # R4S Visualization Prompt Template - Detailed Framework Style
@@ -307,3 +308,253 @@ class VisualizationAgentView(APIView):
 
         # If no pattern found, assume the whole text is the DOT code
         return text.strip()
+
+
+class SimulateAgentView(APIView):
+    """
+    Generate a disaster simulation scenario using Strands Agent.
+
+    POST /api/agents/simulate/{system_slug}/
+        Generate a new scenario from a natural language prompt.
+        Body: {"prompt": "Simulate a 3-month drought affecting maternal health services"}
+        Returns: {"scenario": {...}, "raw_response": "..."}
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, system_slug):
+        from .strands_agent import get_agent
+
+        system = get_object_or_404(System, slug=system_slug)
+        user_prompt = request.data.get('prompt', '')
+
+        if not user_prompt:
+            return Response(
+                {'error': 'Missing "prompt" in request body'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            agent = get_agent()
+
+            # Construct the full prompt with context
+            full_prompt = f"""For the health system "{system.name}" (slug: {system_slug}), please:
+1. First fetch the system data using get_system_data("{system_slug}")
+2. Then generate a disaster simulation scenario for: {user_prompt}
+
+Return the scenario as valid YAML following the DSL schema.
+After generating, use validate_scenario_dsl to check it's valid.
+"""
+
+            result = agent(full_prompt)
+
+            # Extract YAML from response
+            response_text = str(result)
+            yaml_content = self._extract_yaml(response_text)
+
+            scenario_data = None
+            if yaml_content:
+                try:
+                    scenario_data = yaml.safe_load(yaml_content)
+                except yaml.YAMLError:
+                    pass
+
+            return Response({
+                'scenario': scenario_data,
+                'raw_response': response_text,
+                'raw_yaml': yaml_content,
+            })
+
+        except Exception as e:
+            import traceback
+            return Response(
+                {'error': str(e), 'traceback': traceback.format_exc()},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _extract_yaml(self, text: str) -> str:
+        """Extract YAML content from markdown code blocks."""
+        match = re.search(r'```ya?ml\n(.*?)```', text, re.DOTALL)
+        return match.group(1).strip() if match else ''
+
+
+class ChatAgentView(APIView):
+    """
+    Chat with the Strands Agent for interactive scenario exploration.
+
+    POST /api/agents/chat/{system_slug}/
+        Send a message and receive a response.
+        Body: {"messages": [{"role": "user", "content": "..."}]}
+        Returns: {"message": "...", "scenario": {...} or null}
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, system_slug):
+        from .strands_agent import get_agent
+
+        system = get_object_or_404(System, slug=system_slug)
+        messages = request.data.get('messages', [])
+
+        if not messages:
+            return Response(
+                {'error': 'Missing "messages" in request body'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            agent = get_agent()
+
+            # Build conversation context
+            context = f"""You are helping explore disaster scenarios for the "{system.name}" health system (slug: {system_slug}).
+
+When the user asks about potential disasters or "what if" scenarios:
+1. Use get_system_data("{system_slug}") to understand the system
+2. Provide helpful analysis about how the disaster might affect the system
+3. If they ask for a simulation, generate a YAML scenario DSL
+
+Previous conversation:
+"""
+            for msg in messages[:-1]:  # Previous messages as context
+                role = msg.get('role', 'user').upper()
+                content = msg.get('content', '')
+                context += f"{role}: {content}\n\n"
+
+            # Latest user message
+            user_message = messages[-1].get('content', '') if messages else ''
+            full_prompt = context + f"USER: {user_message}"
+
+            result = agent(full_prompt)
+            response_text = str(result)
+
+            # Check if response contains a scenario
+            scenario = None
+            yaml_content = self._extract_yaml(response_text)
+            if yaml_content:
+                try:
+                    scenario = yaml.safe_load(yaml_content)
+                except yaml.YAMLError:
+                    pass
+
+            return Response({
+                'message': response_text,
+                'scenario': scenario
+            })
+
+        except Exception as e:
+            import traceback
+            return Response(
+                {'error': str(e), 'traceback': traceback.format_exc()},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _extract_yaml(self, text: str) -> str:
+        """Extract YAML content from markdown code blocks."""
+        match = re.search(r'```ya?ml\n(.*?)```', text, re.DOTALL)
+        return match.group(1).strip() if match else ''
+
+
+class RiskScenarioListView(APIView):
+    """
+    List and create saved risk scenarios for a system.
+
+    GET /api/systems/{system_slug}/scenarios/
+        List all saved scenarios for the system.
+
+    POST /api/systems/{system_slug}/scenarios/
+        Save a new scenario.
+        Body: {"name": "...", "description": "...", "dsl_content": {...}}
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, system_slug):
+        system = get_object_or_404(System, slug=system_slug)
+        scenarios = system.scenarios.all()
+
+        data = []
+        for scenario in scenarios:
+            data.append({
+                'id': str(scenario.id),
+                'name': scenario.name,
+                'description': scenario.description,
+                'duration': scenario.duration,
+                'event_count': scenario.event_count,
+                'created_at': scenario.created_at.isoformat(),
+                'updated_at': scenario.updated_at.isoformat(),
+            })
+
+        return Response(data)
+
+    def post(self, request, system_slug):
+        system = get_object_or_404(System, slug=system_slug)
+
+        name = request.data.get('name')
+        description = request.data.get('description', '')
+        dsl_content = request.data.get('dsl_content')
+
+        if not name:
+            return Response(
+                {'error': 'Missing "name" in request body'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if not dsl_content:
+            return Response(
+                {'error': 'Missing "dsl_content" in request body'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Get user email if authenticated
+        created_by = ''
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            created_by = getattr(request.user, 'email', str(request.user))
+
+        scenario = RiskScenario.objects.create(
+            system=system,
+            name=name,
+            description=description,
+            dsl_content=dsl_content,
+            created_by=created_by,
+        )
+
+        return Response({
+            'id': str(scenario.id),
+            'name': scenario.name,
+            'description': scenario.description,
+            'duration': scenario.duration,
+            'event_count': scenario.event_count,
+            'created_at': scenario.created_at.isoformat(),
+        }, status=status.HTTP_201_CREATED)
+
+
+class RiskScenarioDetailView(APIView):
+    """
+    Get, update, or delete a specific risk scenario.
+
+    GET /api/systems/{system_slug}/scenarios/{scenario_id}/
+        Get full scenario details including DSL content.
+
+    DELETE /api/systems/{system_slug}/scenarios/{scenario_id}/
+        Delete the scenario.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, system_slug, scenario_id):
+        system = get_object_or_404(System, slug=system_slug)
+        scenario = get_object_or_404(RiskScenario, id=scenario_id, system=system)
+
+        return Response({
+            'id': str(scenario.id),
+            'name': scenario.name,
+            'description': scenario.description,
+            'dsl_content': scenario.dsl_content,
+            'duration': scenario.duration,
+            'event_count': scenario.event_count,
+            'created_by': scenario.created_by,
+            'created_at': scenario.created_at.isoformat(),
+            'updated_at': scenario.updated_at.isoformat(),
+        })
+
+    def delete(self, request, system_slug, scenario_id):
+        system = get_object_or_404(System, slug=system_slug)
+        scenario = get_object_or_404(RiskScenario, id=scenario_id, system=system)
+        scenario.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

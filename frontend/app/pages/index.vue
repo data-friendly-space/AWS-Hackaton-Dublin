@@ -93,7 +93,7 @@ const features = [
         </p>
       </div>
 
-      <div class="relative rounded-2xl border bg-white shadow-xl overflow-hidden">
+      <div class="relative rounded-2xl border-2 border-gray-300 bg-white shadow-xl overflow-hidden">
         <div class="absolute top-0 left-0 right-0 h-10 bg-muted/50 flex items-center px-4 gap-2">
           <div class="w-3 h-3 rounded-full bg-red-400" />
           <div class="w-3 h-3 rounded-full bg-yellow-400" />
@@ -120,7 +120,7 @@ const features = [
     </section>
 
     <!-- Features Section -->
-    <section class="bg-muted/30 py-24">
+    <section class="bg-gray-200 py-24">
       <div class="container">
         <div class="mx-auto max-w-2xl text-center mb-16">
           <h2 class="text-3xl font-bold tracking-tight text-goal-dark sm:text-4xl">

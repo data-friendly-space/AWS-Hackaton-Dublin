@@ -42,8 +42,8 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-    <div class="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+  <div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div class="w-full max-w-md bg-white rounded-xl border-2 border-gray-300 shadow-lg p-8">
       <div class="text-center mb-6">
         <img src="/logo.svg" alt="Resilio" class="mx-auto mb-4 h-16 w-16" />
         <h1 class="text-2xl font-bold text-gray-900">Welcome to Resilio</h1>

@@ -8,14 +8,14 @@ const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
 <template>
   <div class="flex min-h-screen flex-col">
     <!-- Header -->
-    <header class="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header class="sticky top-0 z-50 w-full border-b-2 border-gray-300 bg-white shadow-sm">
       <div class="container flex h-16 items-center justify-between">
         <div class="flex items-center gap-4">
           <NuxtLink to="/" class="flex items-center gap-2">
             <img src="/logo.svg" alt="Resilio" class="h-8 w-8" />
             <span class="text-xl font-bold text-goal-dark">Resilio</span>
           </NuxtLink>
-          <span class="text-sm text-muted-foreground hidden sm:inline">
+          <span class="text-sm text-gray-500 hidden sm:inline">
             R4S System Mapping
           </span>
         </div>
@@ -24,7 +24,7 @@ const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
           <NuxtLink
             v-if="isAuthenticated"
             to="/systems"
-            class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            class="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             Systems
           </NuxtLink>
@@ -32,7 +32,7 @@ const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
           <NuxtLink
             v-if="isAuthenticated"
             to="/docs"
-            class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            class="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             Docs
           </NuxtLink>
@@ -40,7 +40,7 @@ const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
           <template v-if="isAuthenticated && isSuperadmin">
             <NuxtLink
               to="/admin"
-              class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              class="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
             >
               Admin
             </NuxtLink>
@@ -48,17 +48,17 @@ const { user, isAuthenticated, isSuperadmin, logout } = useAuth()
 
           <NuxtLink
             to="/about"
-            class="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            class="text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
           >
             About
           </NuxtLink>
 
           <!-- Auth Section -->
-          <div class="flex items-center gap-2 ml-4 pl-4 border-l">
+          <div class="flex items-center gap-2 ml-4 pl-4 border-l-2 border-gray-300">
             <template v-if="isAuthenticated">
               <NuxtLink
                 to="/profile"
-                class="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                class="flex items-center gap-2 text-sm font-medium text-gray-600 transition-colors hover:text-gray-900"
               >
                 <User class="h-4 w-4" />
                 <span class="hidden sm:inline">{{ user?.first_name }}</span>

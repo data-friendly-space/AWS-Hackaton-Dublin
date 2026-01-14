@@ -3,7 +3,7 @@ import {
   ArrowLeft, Download, Network, Users, AlertTriangle, Link, Bot,
   Send, Sparkles, Component, FileText, Eye, MessageSquare,
   ChevronRight, Info, CheckCircle2, XCircle, AlertCircle,
-  ZoomIn, ZoomOut, RotateCcw, LayoutGrid, Upload, Loader2
+  ZoomIn, ZoomOut, RotateCcw, LayoutGrid, Upload, Loader2, PlayCircle
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -1288,6 +1288,12 @@ const categoryColors: Record<string, string> = {
                 Upload Data
               </Button>
             </NuxtLink>
+            <NuxtLink :to="`/systems/${slug}/simulate`">
+              <Button variant="outline">
+                <PlayCircle class="mr-2 h-4 w-4" />
+                Simulate Risk
+              </Button>
+            </NuxtLink>
             <Button variant="outline" @click="exportToPDF" :disabled="isExporting">
               <Loader2 v-if="isExporting" class="mr-2 h-4 w-4 animate-spin" />
               <Download v-else class="mr-2 h-4 w-4" />
@@ -1507,7 +1513,7 @@ const categoryColors: Record<string, string> = {
               <!-- Network Graph Visualization -->
               <div v-show="visualizationMode === 'network'">
               <!-- Canvas Container -->
-              <div ref="canvasContainerRef" class="relative rounded-xl border bg-slate-100 overflow-hidden h-[500px]" @click="!visualizationInitialized && tryInitVisualization()">
+              <div ref="canvasContainerRef" class="relative rounded-xl border-2 border-gray-300 bg-gray-100 overflow-hidden h-[500px]" @click="!visualizationInitialized && tryInitVisualization()">
                 <!-- Loading state -->
                 <div v-if="!visualizationInitialized && activeTab === 'visualization'" class="absolute inset-0 flex items-center justify-center bg-slate-100 z-10">
                   <div class="text-center">
@@ -1666,7 +1672,7 @@ const categoryColors: Record<string, string> = {
               <!-- R4S Framework Visualization -->
               <div v-show="visualizationMode === 'r4s'">
                 <!-- R4S Container -->
-                <div class="relative rounded-xl border bg-white overflow-hidden min-h-[500px]">
+                <div class="relative rounded-xl border-2 border-gray-300 bg-white overflow-hidden min-h-[500px]">
                   <!-- Loading state -->
                   <div v-if="r4sLoading" class="absolute inset-0 flex items-center justify-center bg-white z-10">
                     <div class="text-center">
@@ -1785,7 +1791,7 @@ const categoryColors: Record<string, string> = {
                   <div
                     v-for="rel in system.relationships"
                     :key="rel.id"
-                    class="flex items-center justify-between rounded-lg border p-4 hover:bg-muted/50 transition-colors"
+                    class="flex items-center justify-between rounded-lg border-2 border-gray-200 bg-white p-4 hover:border-gray-300 hover:shadow-sm transition-all"
                   >
                     <div class="flex items-center gap-3 flex-1">
                       <span class="font-medium text-sm">{{ rel.from_actor_name }}</span>
@@ -1878,7 +1884,7 @@ const categoryColors: Record<string, string> = {
                     <div
                       v-for="risk in system.risks"
                       :key="risk.id"
-                      class="rounded-lg border p-4 hover:shadow-md transition-shadow"
+                      class="rounded-lg border-2 border-gray-200 bg-white p-4 hover:border-gray-300 hover:shadow-md transition-all"
                     >
                       <div class="flex items-start justify-between mb-2">
                         <h4 class="font-medium">{{ risk.name }}</h4>
