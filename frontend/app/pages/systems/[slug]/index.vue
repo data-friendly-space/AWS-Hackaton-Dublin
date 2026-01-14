@@ -944,121 +944,147 @@ async function exportToPDF() {
     yPos = (doc as any).lastAutoTable.finalY + 10
 
     // ===== NETWORK GRAPH VISUALIZATION =====
-    // Add the network graph from the canvas
-    if (canvasRef.value) {
-      doc.addPage()
-      yPos = margin
-
-      doc.setFontSize(14)
-      doc.setFont('helvetica', 'bold')
-      doc.setTextColor(0, 110, 51)
-      doc.text('Network Graph Visualization', margin, yPos)
-      yPos += 10
-
-      try {
-        // Get the canvas image data directly
-        const imgData = canvasRef.value.toDataURL('image/png')
-        const pageWidth = doc.internal.pageSize.getWidth()
-        const pageHeight = doc.internal.pageSize.getHeight()
-
-        // Calculate dimensions to fit page
-        const maxWidth = pageWidth - 2 * margin
-        const maxHeight = pageHeight - yPos - margin - 10
-        const canvasWidth = canvasRef.value.width
-        const canvasHeight = canvasRef.value.height
-        const scale = Math.min(maxWidth / canvasWidth, maxHeight / canvasHeight)
-        const imgWidth = canvasWidth * scale
-        const imgHeight = canvasHeight * scale
-
-        // Center the image horizontally
-        const xOffset = (pageWidth - imgWidth) / 2
-        doc.addImage(imgData, 'PNG', xOffset, yPos, imgWidth, imgHeight)
-
-        // Add legend below the image
-        yPos += imgHeight + 10
-        doc.setFontSize(9)
-        doc.setFont('helvetica', 'normal')
-        doc.setTextColor(100, 100, 100)
-
-        // Legend items
-        const legendItems = [
-          { color: [139, 92, 246], label: 'Service Users' },
-          { color: [0, 110, 51], label: 'Service Providers' },
-          { color: [245, 158, 11], label: 'Support Actors' },
-          { color: [239, 68, 68], label: 'Regulatory Bodies' }
-        ]
-
-        let legendX = margin
-        legendItems.forEach((item) => {
-          doc.setFillColor(item.color[0], item.color[1], item.color[2])
-          doc.circle(legendX + 3, yPos, 3, 'F')
-          doc.text(item.label, legendX + 8, yPos + 1)
-          legendX += 45
-        })
-      } catch (e) {
-        console.error('Failed to add network graph to PDF:', e)
-        doc.setFontSize(10)
-        doc.setTextColor(150, 150, 150)
-        doc.text('(Network graph could not be embedded)', margin, yPos + 10)
+    // Ensure the network graph is initialized
+    if (canvasRef.value && canvasContainerRef.value) {
+      // Initialize visualization if not already done
+      if (!visualizationInitialized.value) {
+        initVisualization()
+        renderCanvas()
+        // Small delay to ensure rendering is complete
+        await new Promise(resolve => setTimeout(resolve, 100))
       }
-    }
 
-    // ===== R4S VISUALIZATION =====
-    // Try to include the R4S visualization if available
-    if (r4sContainerRef.value) {
-      const svgElement = r4sContainerRef.value.querySelector('svg')
-      if (svgElement) {
-        checkNewPage(100)
-        doc.addPage('landscape')
+      // Only add if canvas has content
+      if (canvasRef.value.width > 0 && canvasRef.value.height > 0) {
+        doc.addPage()
         yPos = margin
 
         doc.setFontSize(14)
         doc.setFont('helvetica', 'bold')
         doc.setTextColor(0, 110, 51)
-        doc.text('R4S Framework Visualization', margin, yPos)
+        doc.text('Network Graph Visualization', margin, yPos)
         yPos += 10
 
-        // Convert SVG to data URL and add to PDF
         try {
-          const svgData = new XMLSerializer().serializeToString(svgElement)
-          const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
-          const url = URL.createObjectURL(svgBlob)
+          const imgData = canvasRef.value.toDataURL('image/png')
+          const pageWidth = doc.internal.pageSize.getWidth()
+          const pageHeight = doc.internal.pageSize.getHeight()
 
-          // Create canvas to convert SVG to image
-          const canvas = document.createElement('canvas')
-          const ctx = canvas.getContext('2d')
-          const img = new Image()
+          const maxWidth = pageWidth - 2 * margin
+          const maxHeight = pageHeight - yPos - margin - 10
+          const canvasWidth = canvasRef.value.width
+          const canvasHeight = canvasRef.value.height
+          const imgScale = Math.min(maxWidth / canvasWidth, maxHeight / canvasHeight)
+          const imgWidth = canvasWidth * imgScale
+          const imgHeight = canvasHeight * imgScale
 
-          await new Promise<void>((resolve, reject) => {
-            img.onload = () => {
-              canvas.width = img.width
-              canvas.height = img.height
-              ctx?.drawImage(img, 0, 0)
+          const xOffset = (pageWidth - imgWidth) / 2
+          doc.addImage(imgData, 'PNG', xOffset, yPos, imgWidth, imgHeight)
 
-              const imgData = canvas.toDataURL('image/png')
-              const landscapeWidth = doc.internal.pageSize.getWidth()
-              const landscapeHeight = doc.internal.pageSize.getHeight()
+          // Add legend
+          yPos += imgHeight + 10
+          doc.setFontSize(9)
+          doc.setFont('helvetica', 'normal')
+          doc.setTextColor(100, 100, 100)
 
-              // Calculate dimensions to fit page
-              const maxWidth = landscapeWidth - 2 * margin
-              const maxHeight = landscapeHeight - yPos - margin
-              const scale = Math.min(maxWidth / img.width, maxHeight / img.height)
-              const imgWidth = img.width * scale
-              const imgHeight = img.height * scale
+          const legendItems = [
+            { color: [139, 92, 246], label: 'Service Users' },
+            { color: [0, 110, 51], label: 'Service Providers' },
+            { color: [245, 158, 11], label: 'Support Actors' },
+            { color: [239, 68, 68], label: 'Regulatory Bodies' }
+          ]
 
-              doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight)
-              URL.revokeObjectURL(url)
-              resolve()
-            }
-            img.onerror = reject
-            img.src = url
+          let legendX = margin
+          legendItems.forEach((item) => {
+            doc.setFillColor(item.color[0], item.color[1], item.color[2])
+            doc.circle(legendX + 3, yPos, 3, 'F')
+            doc.text(item.label, legendX + 8, yPos + 1)
+            legendX += 45
           })
         } catch (e) {
-          console.error('Failed to add visualization to PDF:', e)
-          doc.setFontSize(10)
-          doc.setTextColor(150, 150, 150)
-          doc.text('(Visualization could not be embedded - view in web application)', margin, yPos + 10)
+          console.error('Failed to add network graph to PDF:', e)
         }
+      }
+    }
+
+    // ===== R4S VISUALIZATION =====
+    // Use viz.js to render DOT code directly to canvas for PDF
+    if (r4sDotCode.value) {
+      doc.addPage('landscape')
+      yPos = margin
+
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 110, 51)
+      doc.text('R4S Framework Visualization', margin, yPos)
+      yPos += 10
+
+      try {
+        // Import viz.js and render DOT to SVG
+        const { instance } = await import('@viz-js/viz')
+        const viz = await instance()
+        const svgString = viz.renderString(r4sDotCode.value, { format: 'svg' })
+
+        // Create a temporary container for the SVG
+        const tempDiv = document.createElement('div')
+        tempDiv.innerHTML = svgString
+        const svgElement = tempDiv.querySelector('svg')
+
+        if (svgElement) {
+          // Get SVG dimensions
+          const svgWidth = parseFloat(svgElement.getAttribute('width') || '800')
+          const svgHeight = parseFloat(svgElement.getAttribute('height') || '600')
+
+          // Create canvas and draw SVG
+          const canvas = document.createElement('canvas')
+          const scaleFactor = 2 // Higher resolution
+          canvas.width = svgWidth * scaleFactor
+          canvas.height = svgHeight * scaleFactor
+          const ctx = canvas.getContext('2d')
+
+          if (ctx) {
+            // Draw white background
+            ctx.fillStyle = 'white'
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+            // Convert SVG to data URL with proper encoding
+            const svgData = new XMLSerializer().serializeToString(svgElement)
+            const svgBase64 = btoa(unescape(encodeURIComponent(svgData)))
+            const svgDataUrl = 'data:image/svg+xml;base64,' + svgBase64
+
+            // Load image and draw to canvas
+            await new Promise<void>((resolve, reject) => {
+              const img = new Image()
+              img.onload = () => {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+                resolve()
+              }
+              img.onerror = () => {
+                console.error('Failed to load SVG image')
+                reject(new Error('SVG load failed'))
+              }
+              img.src = svgDataUrl
+            })
+
+            // Add to PDF
+            const imgData = canvas.toDataURL('image/png')
+            const landscapeWidth = doc.internal.pageSize.getWidth()
+            const landscapeHeight = doc.internal.pageSize.getHeight()
+
+            const maxWidth = landscapeWidth - 2 * margin
+            const maxHeight = landscapeHeight - yPos - margin
+            const imgScale = Math.min(maxWidth / svgWidth, maxHeight / svgHeight)
+            const imgWidth = svgWidth * imgScale
+            const imgHeight = svgHeight * imgScale
+
+            doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight)
+          }
+        }
+      } catch (e) {
+        console.error('Failed to add R4S visualization to PDF:', e)
+        doc.setFontSize(10)
+        doc.setTextColor(150, 150, 150)
+        doc.text('(R4S visualization could not be embedded - view in web application)', margin, yPos + 10)
       }
     }
 
@@ -1479,7 +1505,7 @@ const categoryColors: Record<string, string> = {
               </div>
 
               <!-- Network Graph Visualization -->
-              <div v-if="visualizationMode === 'network'">
+              <div v-show="visualizationMode === 'network'">
               <!-- Canvas Container -->
               <div ref="canvasContainerRef" class="relative rounded-xl border bg-slate-100 overflow-hidden h-[500px]" @click="!visualizationInitialized && tryInitVisualization()">
                 <!-- Loading state -->
@@ -1638,7 +1664,7 @@ const categoryColors: Record<string, string> = {
               </div>
 
               <!-- R4S Framework Visualization -->
-              <div v-if="visualizationMode === 'r4s'">
+              <div v-show="visualizationMode === 'r4s'">
                 <!-- R4S Container -->
                 <div class="relative rounded-xl border bg-white overflow-hidden min-h-[500px]">
                   <!-- Loading state -->
