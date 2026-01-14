@@ -11,8 +11,6 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
-import jsPDF from 'jspdf'
-import autoTable from 'jspdf-autotable'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -667,6 +665,10 @@ async function exportToPDF() {
   isExporting.value = true
 
   try {
+    // Dynamically import jsPDF (client-side only)
+    const { default: jsPDF } = await import('jspdf')
+    const { default: autoTable } = await import('jspdf-autotable')
+
     // Create PDF document (A4 size)
     const doc = new jsPDF('p', 'mm', 'a4')
     const pageWidth = doc.internal.pageSize.getWidth()
