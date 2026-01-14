@@ -57,6 +57,10 @@ const dragStartY = ref(0)
 const visNodes = ref<any[]>([])
 const visEdges = ref<any[]>([])
 
+// Animation state for pulsing stressed relationships
+const animationTime = ref(0)
+const animationFrameId = ref<number | null>(null)
+
 // R4S Framework Visualization State
 const visualizationMode = ref<'network' | 'r4s'>('network')
 const r4sContainerRef = ref<HTMLDivElement | null>(null)
@@ -224,7 +228,7 @@ function renderCanvas() {
   // Draw edges
   for (const edge of visEdges.value) {
     if (!isNodeVisible(edge.from) || !isNodeVisible(edge.to)) continue
-    drawEdge(ctx, edge)
+    drawEdge(ctx, edge, animationTime.value)
   }
 
   // Draw nodes
@@ -234,6 +238,25 @@ function renderCanvas() {
   }
 
   ctx.restore()
+}
+
+// Animation loop for pulsing stressed relationships
+function startAnimation() {
+  if (animationFrameId.value) return
+
+  const animate = () => {
+    animationTime.value = Date.now()
+    renderCanvas()
+    animationFrameId.value = requestAnimationFrame(animate)
+  }
+  animate()
+}
+
+function stopAnimation() {
+  if (animationFrameId.value) {
+    cancelAnimationFrame(animationFrameId.value)
+    animationFrameId.value = null
+  }
 }
 
 function drawNode(ctx: CanvasRenderingContext2D, node: any) {
@@ -271,7 +294,7 @@ function drawNode(ctx: CanvasRenderingContext2D, node: any) {
   ctx.fillText(truncatedLabel, x, y + radius + 8)
 }
 
-function drawEdge(ctx: CanvasRenderingContext2D, edge: any) {
+function drawEdge(ctx: CanvasRenderingContext2D, edge: any, time: number = 0) {
   const { from, to, data } = edge
   if (!from || !to) return
 
@@ -289,11 +312,31 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: any) {
   const endY = to.y - ny * to.radius
 
   const quality = data.quality || 'good'
-  ctx.strokeStyle = visColors[quality] || '#9CA3AF'
-  ctx.lineWidth = quality === 'absent' ? 1 : 2
+  let baseColor = visColors[quality] || '#9CA3AF'
+
+  // Thicker lines: good=4, stressed/bad=5, absent=2
+  let lineWidth = quality === 'absent' ? 2 : quality === 'good' ? 4 : 5
+
+  // Pulsing animation for stressed and bad relationships
+  if (quality === 'stressed' || quality === 'bad') {
+    // Create pulsing effect: oscillate opacity between 0.4 and 1.0
+    const pulseSpeed = quality === 'bad' ? 4 : 2 // Bad pulses faster
+    const pulse = Math.sin(time * pulseSpeed / 1000 * Math.PI) * 0.3 + 0.7
+    ctx.globalAlpha = pulse
+
+    // Also pulse the line width slightly
+    lineWidth = lineWidth + Math.sin(time * pulseSpeed / 1000 * Math.PI) * 1.5
+  } else {
+    ctx.globalAlpha = 1
+  }
+
+  ctx.strokeStyle = baseColor
+  ctx.lineWidth = lineWidth
 
   if (quality === 'absent') {
-    ctx.setLineDash([5, 5])
+    ctx.setLineDash([8, 8])
+  } else if (quality === 'stressed') {
+    ctx.setLineDash([12, 6]) // Dashed for stressed
   } else {
     ctx.setLineDash([])
   }
@@ -303,8 +346,8 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: any) {
   ctx.lineTo(endX, endY)
   ctx.stroke()
 
-  // Arrow
-  const arrowSize = 10
+  // Arrow - larger for thicker lines
+  const arrowSize = 12
   const angle = Math.atan2(endY - startY, endX - startX)
   ctx.beginPath()
   ctx.moveTo(endX, endY)
@@ -314,6 +357,7 @@ function drawEdge(ctx: CanvasRenderingContext2D, edge: any) {
   ctx.fillStyle = ctx.strokeStyle
   ctx.fill()
   ctx.setLineDash([])
+  ctx.globalAlpha = 1 // Reset alpha
 }
 
 function lightenColor(hex: string, percent: number): string {
@@ -538,12 +582,24 @@ async function renderR4SVisualization(dotCode: string) {
 function switchVisualizationMode(mode: 'network' | 'r4s') {
   visualizationMode.value = mode
 
-  if (mode === 'r4s' && !r4sDotCode.value && !r4sLoading.value) {
-    loadR4SVisualization()
-  } else if (mode === 'network' && !visualizationInitialized.value) {
-    nextTick(() => tryInitVisualization())
+  if (mode === 'r4s') {
+    stopAnimation() // Stop network graph animation when switching to R4S
+    if (!r4sDotCode.value && !r4sLoading.value) {
+      loadR4SVisualization()
+    }
+  } else if (mode === 'network') {
+    if (!visualizationInitialized.value) {
+      nextTick(() => tryInitVisualization())
+    } else {
+      startAnimation() // Restart animation when switching back to network
+    }
   }
 }
+
+// Cleanup animation on component unmount
+onUnmounted(() => {
+  stopAnimation()
+})
 
 // Try to initialize visualization - will retry if container not ready
 function tryInitVisualization() {
@@ -560,6 +616,7 @@ function tryInitVisualization() {
   if (width > 100 && height > 100) {
     initVisualization()
     visualizationInitialized.value = true
+    startAnimation() // Start animation for pulsing stressed relationships
   }
 }
 

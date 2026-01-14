@@ -28,47 +28,50 @@ VISUAL STRUCTURE - THREE HORIZONTAL TIERS:
 ============================================================================
 TIER 1 - SUPPORTING FUNCTIONS (Top, cream/yellow background #FEF3C7)
 ============================================================================
-Create category header boxes arranged horizontally:
-- LEADERSHIP & GOVERNANCE (icon: building)
-- INFORMATION (icon: database)
-- SERVICE DELIVERY (icon: medical cross)
-- HEALTH FINANCING (icon: dollar)
-- MEDICAL SUPPLY/VACCINES/TECHNOLOGY (icon: truck)
-- HUMAN RESOURCES (icon: people)
+Arrange support actors in 2-3 ROWS within this tier (not all on one line):
+- Row 1: Leadership/Governance actors, Information actors
+- Row 2: Service Delivery support, Health Financing actors
+- Row 3: Medical Supply actors, Human Resources actors
 
-Under each header, list relevant support actors from the data.
+Group by support category but stack VERTICALLY in multiple rows.
 Use: style=filled, fillcolor="#FEF3C7", shape=box, fontsize=10
+Keep this tier COMPACT - do not spread actors horizontally across entire width.
 
 ============================================================================
 TIER 2 - CORE SERVICE DELIVERY (Middle, salmon/pink background #FEE2E2)
 ============================================================================
-Organize LEFT-TO-RIGHT by Administrative Level columns:
+Organize TOP-TO-BOTTOM by Administrative Level (creating vertical flow):
 
-  FEDERAL → REGIONAL → ZONAL → WOREDA → KEBELE → FAMILIES
-  (leftmost)                                      (rightmost)
+  FEDERAL (top of tier)
+      ↓
+  REGIONAL
+      ↓
+  ZONAL
+      ↓
+  WOREDA
+      ↓
+  KEBELE
+      ↓
+  COMMUNITY/FAMILIES (bottom of tier)
 
-Within each column, show TWO ROWS:
-- TOP ROW: Curative/Diagnostic Level (hospitals, clinics)
-- BOTTOM ROW: Preventative Level (health posts, outreach, HEWs)
+Within each admin level, place nodes side by side:
+- Curative services (hospitals, clinics) on left
+- Preventative services (health posts, HEWs) on right
 
-Place service_provider actors in appropriate admin level columns.
-Service users (Families, Children, Pregnant Women) go in rightmost column.
+Place service_provider actors in appropriate admin level rows.
+Service users (Families, Children, Pregnant Women) go at the bottom.
 
-Use subgraphs with rank=same to align nodes horizontally.
-Use invisible edges to enforce left-to-right ordering.
+DO NOT use rank=same excessively - let Graphviz flow nodes vertically.
+Create separate subgraph clusters for each admin level to enforce vertical stacking.
 
 ============================================================================
 TIER 3 - REGULATORY & NORMATIVE (Bottom, light green background #D1FAE5)
 ============================================================================
-Create category boxes arranged horizontally:
-- LEADERSHIP & GOVERNANCE (policies, standards)
-- FINANCING (funding regulations)
-- MEDICAL SUPPLY/VACCINES/TECH (quality standards)
-- INFORMATION (reporting requirements)
-- SERVICE DELIVERY (clinical protocols)
-- HUMAN RESOURCES FOR HEALTH (training standards)
+Arrange regulatory actors in 2-3 ROWS (not all horizontal):
+- Group by regulatory function
+- Stack vertically within the tier
 
-Place regulatory actors under appropriate categories.
+Place regulatory actors in a compact vertical arrangement.
 
 NODE STYLING:
 - Shape: box with rounded corners (shape=box, style="rounded,filled")
@@ -94,8 +97,13 @@ LAYOUT REQUIREMENTS:
 1. rankdir=TB (top to bottom for tiers)
 2. Use compound=true for edges between clusters
 3. Use constraint=false on some edges to allow flexible routing
-4. Add nodesep=0.5, ranksep=0.8 for spacing
-5. Use splines=ortho for right-angle connectors (cleaner look)
+4. Add nodesep=0.4, ranksep=1.5 for MORE VERTICAL spacing between tiers
+5. Use splines=polyline for cleaner connectors
+6. Add newrank=true for better vertical tier separation
+7. Use ratio=0.7 to make the graph taller than wide
+8. Each tier cluster should have its own distinct vertical band
+9. Within clusters, arrange nodes in VERTICAL stacks rather than horizontal rows
+10. Use rank=same SPARINGLY - only for nodes that truly need horizontal alignment
 
 LEGEND (bottom right):
 Create a legend showing:
