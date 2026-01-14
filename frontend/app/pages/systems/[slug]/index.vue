@@ -3,7 +3,7 @@ import {
   ArrowLeft, Download, Network, Users, AlertTriangle, Link, Bot,
   Send, Sparkles, Component, FileText, Eye, MessageSquare,
   ChevronRight, Info, CheckCircle2, XCircle, AlertCircle,
-  ZoomIn, ZoomOut, RotateCcw, LayoutGrid, Upload
+  ZoomIn, ZoomOut, RotateCcw, LayoutGrid, Upload, Loader2
 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 const route = useRoute()
 const slug = route.params.slug as string
@@ -62,6 +64,9 @@ const r4sDotCode = ref<string | null>(null)
 const r4sLoading = ref(false)
 const r4sError = ref<string | null>(null)
 const r4sCached = ref(false)
+
+// PDF Export State
+const isExporting = ref(false)
 
 // Actor type colors
 const visColors: Record<string, string> = {
@@ -596,6 +601,378 @@ onMounted(() => {
   }
 })
 
+// =========================================================================
+// PDF Export Function
+// =========================================================================
+async function exportToPDF() {
+  if (!system || isExporting.value) return
+
+  isExporting.value = true
+
+  try {
+    // Create PDF document (A4 size)
+    const doc = new jsPDF('p', 'mm', 'a4')
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+    const margin = 15
+    let yPos = margin
+
+    // Helper function to add new page if needed
+    const checkNewPage = (neededHeight: number) => {
+      if (yPos + neededHeight > pageHeight - margin) {
+        doc.addPage()
+        yPos = margin
+        return true
+      }
+      return false
+    }
+
+    // ===== HEADER =====
+    // GOAL Green header bar
+    doc.setFillColor(0, 110, 51) // GOAL green
+    doc.rect(0, 0, pageWidth, 25, 'F')
+
+    // Title
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(18)
+    doc.setFont('helvetica', 'bold')
+    doc.text('R4S System Assessment Report', margin, 16)
+
+    // Subtitle with date
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text(`Generated: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`, pageWidth - margin, 16, { align: 'right' })
+
+    yPos = 35
+
+    // ===== SYSTEM INFO =====
+    doc.setTextColor(0, 0, 0)
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.text(system.name, margin, yPos)
+    yPos += 8
+
+    // Metadata badges
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(100, 100, 100)
+    const metaText = [system.sector_display, system.subsector, system.region, system.country].filter(Boolean).join(' | ')
+    doc.text(metaText, margin, yPos)
+    yPos += 8
+
+    // Description
+    if (system.description) {
+      doc.setTextColor(60, 60, 60)
+      doc.setFontSize(10)
+      const descLines = doc.splitTextToSize(system.description, pageWidth - 2 * margin)
+      doc.text(descLines, margin, yPos)
+      yPos += descLines.length * 5 + 5
+    }
+
+    // ===== KEY METRICS BOX =====
+    checkNewPage(35)
+    doc.setFillColor(240, 253, 244) // Light green background
+    doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 30, 3, 3, 'F')
+
+    // Metrics
+    const metricsY = yPos + 12
+    const colWidth = (pageWidth - 2 * margin) / 5
+
+    const metrics = [
+      { label: 'Actors', value: system.actor_count.toString() },
+      { label: 'Relationships', value: system.relationship_count.toString() },
+      { label: 'Components', value: system.component_count.toString() },
+      { label: 'Risk Scenarios', value: system.risk_count.toString() },
+      { label: 'Resilience', value: `${system.resilience_score}%` },
+    ]
+
+    metrics.forEach((metric, i) => {
+      const x = margin + colWidth * i + colWidth / 2
+      doc.setFontSize(16)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 110, 51)
+      doc.text(metric.value, x, metricsY, { align: 'center' })
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 100, 100)
+      doc.text(metric.label, x, metricsY + 7, { align: 'center' })
+    })
+
+    yPos += 40
+
+    // ===== AI SUMMARY =====
+    checkNewPage(50)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 110, 51)
+    doc.text('AI-Generated Analysis', margin, yPos)
+    yPos += 8
+
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(60, 60, 60)
+
+    // Clean and wrap AI summary text
+    const cleanSummary = system.ai_summary
+      .replace(/##\s*/g, '')
+      .replace(/###\s*/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/\n\n/g, '\n')
+    const summaryLines = doc.splitTextToSize(cleanSummary, pageWidth - 2 * margin)
+
+    // Limit summary to prevent overflow
+    const maxSummaryLines = Math.min(summaryLines.length, 25)
+    for (let i = 0; i < maxSummaryLines; i++) {
+      if (checkNewPage(5)) {
+        // Add section header on new page
+      }
+      doc.text(summaryLines[i], margin, yPos)
+      yPos += 4.5
+    }
+    if (summaryLines.length > maxSummaryLines) {
+      doc.text('...', margin, yPos)
+      yPos += 5
+    }
+    yPos += 5
+
+    // ===== ACTORS TABLE =====
+    checkNewPage(40)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 110, 51)
+    doc.text('System Actors', margin, yPos)
+    yPos += 6
+
+    const actorRows = system.actors.map((actor: any) => [
+      actor.name,
+      actor.actor_type_display,
+      actor.function?.substring(0, 80) + (actor.function?.length > 80 ? '...' : '')
+    ])
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Actor Name', 'Type', 'Function']],
+      body: actorRows,
+      margin: { left: margin, right: margin },
+      headStyles: { fillColor: [0, 110, 51], fontSize: 9 },
+      bodyStyles: { fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 45 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 'auto' }
+      },
+      theme: 'striped'
+    })
+
+    yPos = (doc as any).lastAutoTable.finalY + 10
+
+    // ===== RELATIONSHIPS TABLE =====
+    checkNewPage(40)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 110, 51)
+    doc.text('Relationships', margin, yPos)
+    yPos += 6
+
+    const relationshipRows = system.relationships.map((rel: any) => [
+      rel.from_actor_name,
+      rel.to_actor_name,
+      rel.goods_services?.substring(0, 50) + (rel.goods_services?.length > 50 ? '...' : ''),
+      rel.quality_display
+    ])
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['From Actor', 'To Actor', 'Goods/Services', 'Quality']],
+      body: relationshipRows,
+      margin: { left: margin, right: margin },
+      headStyles: { fillColor: [0, 110, 51], fontSize: 9 },
+      bodyStyles: { fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 'auto' },
+        3: { cellWidth: 25 }
+      },
+      theme: 'striped',
+      didParseCell: (data: any) => {
+        // Color code quality column
+        if (data.column.index === 3 && data.section === 'body') {
+          const quality = system.relationships[data.row.index]?.quality
+          if (quality === 'good') data.cell.styles.textColor = [34, 197, 94]
+          else if (quality === 'stressed') data.cell.styles.textColor = [245, 158, 11]
+          else if (quality === 'bad') data.cell.styles.textColor = [239, 68, 68]
+          else if (quality === 'absent') data.cell.styles.textColor = [156, 163, 175]
+        }
+      }
+    })
+
+    yPos = (doc as any).lastAutoTable.finalY + 10
+
+    // ===== RISK SCENARIOS TABLE =====
+    checkNewPage(40)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 110, 51)
+    doc.text('Risk Scenarios', margin, yPos)
+    yPos += 6
+
+    const riskRows = system.risks.map((risk: any) => [
+      risk.name,
+      risk.category_display,
+      risk.likelihood_display,
+      risk.description?.substring(0, 60) + (risk.description?.length > 60 ? '...' : '')
+    ])
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Risk', 'Category', 'Likelihood', 'Description']],
+      body: riskRows,
+      margin: { left: margin, right: margin },
+      headStyles: { fillColor: [0, 110, 51], fontSize: 9 },
+      bodyStyles: { fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 40 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 'auto' }
+      },
+      theme: 'striped'
+    })
+
+    yPos = (doc as any).lastAutoTable.finalY + 10
+
+    // ===== COMPONENTS TABLE =====
+    checkNewPage(40)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(0, 110, 51)
+    doc.text('System Components', margin, yPos)
+    yPos += 6
+
+    const componentRows = system.components.map((comp: any) => [
+      comp.name,
+      comp.category_display,
+      comp.status_display,
+      comp.description?.substring(0, 50) + (comp.description?.length > 50 ? '...' : '')
+    ])
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Component', 'Category', 'Status', 'Description']],
+      body: componentRows,
+      margin: { left: margin, right: margin },
+      headStyles: { fillColor: [0, 110, 51], fontSize: 9 },
+      bodyStyles: { fontSize: 8 },
+      columnStyles: {
+        0: { cellWidth: 45 },
+        1: { cellWidth: 30 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 'auto' }
+      },
+      theme: 'striped',
+      didParseCell: (data: any) => {
+        // Color code status column
+        if (data.column.index === 2 && data.section === 'body') {
+          const status = system.components[data.row.index]?.status
+          if (status === 'functional') data.cell.styles.textColor = [34, 197, 94]
+          else if (status === 'degraded') data.cell.styles.textColor = [245, 158, 11]
+          else if (status === 'non_functional') data.cell.styles.textColor = [239, 68, 68]
+        }
+      }
+    })
+
+    yPos = (doc as any).lastAutoTable.finalY + 10
+
+    // ===== R4S VISUALIZATION =====
+    // Try to include the R4S visualization if available
+    if (r4sContainerRef.value) {
+      const svgElement = r4sContainerRef.value.querySelector('svg')
+      if (svgElement) {
+        checkNewPage(100)
+        doc.addPage('landscape')
+        yPos = margin
+
+        doc.setFontSize(14)
+        doc.setFont('helvetica', 'bold')
+        doc.setTextColor(0, 110, 51)
+        doc.text('R4S Framework Visualization', margin, yPos)
+        yPos += 10
+
+        // Convert SVG to data URL and add to PDF
+        try {
+          const svgData = new XMLSerializer().serializeToString(svgElement)
+          const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
+          const url = URL.createObjectURL(svgBlob)
+
+          // Create canvas to convert SVG to image
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')
+          const img = new Image()
+
+          await new Promise<void>((resolve, reject) => {
+            img.onload = () => {
+              canvas.width = img.width
+              canvas.height = img.height
+              ctx?.drawImage(img, 0, 0)
+
+              const imgData = canvas.toDataURL('image/png')
+              const landscapeWidth = doc.internal.pageSize.getWidth()
+              const landscapeHeight = doc.internal.pageSize.getHeight()
+
+              // Calculate dimensions to fit page
+              const maxWidth = landscapeWidth - 2 * margin
+              const maxHeight = landscapeHeight - yPos - margin
+              const scale = Math.min(maxWidth / img.width, maxHeight / img.height)
+              const imgWidth = img.width * scale
+              const imgHeight = img.height * scale
+
+              doc.addImage(imgData, 'PNG', margin, yPos, imgWidth, imgHeight)
+              URL.revokeObjectURL(url)
+              resolve()
+            }
+            img.onerror = reject
+            img.src = url
+          })
+        } catch (e) {
+          console.error('Failed to add visualization to PDF:', e)
+          doc.setFontSize(10)
+          doc.setTextColor(150, 150, 150)
+          doc.text('(Visualization could not be embedded - view in web application)', margin, yPos + 10)
+        }
+      }
+    }
+
+    // ===== FOOTER ON ALL PAGES =====
+    const totalPages = doc.getNumberOfPages()
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i)
+      const currentPageHeight = doc.internal.pageSize.getHeight()
+      const currentPageWidth = doc.internal.pageSize.getWidth()
+
+      // Footer line
+      doc.setDrawColor(200, 200, 200)
+      doc.line(margin, currentPageHeight - 12, currentPageWidth - margin, currentPageHeight - 12)
+
+      // Footer text
+      doc.setFontSize(8)
+      doc.setTextColor(150, 150, 150)
+      doc.text('Generated by Resilio - R4S System Mapping Tool', margin, currentPageHeight - 7)
+      doc.text(`Page ${i} of ${totalPages}`, currentPageWidth - margin, currentPageHeight - 7, { align: 'right' })
+    }
+
+    // Save the PDF
+    const filename = `${system.slug}-r4s-report-${new Date().toISOString().split('T')[0]}.pdf`
+    doc.save(filename)
+
+  } catch (error) {
+    console.error('Failed to generate PDF:', error)
+    alert('Failed to generate PDF report. Please try again.')
+  } finally {
+    isExporting.value = false
+  }
+}
+
 // Chat state
 const chatInput = ref('')
 const chatMessages = ref<Array<{ role: 'user' | 'assistant'; content: string }>>([
@@ -766,9 +1143,10 @@ const categoryColors: Record<string, string> = {
                 Upload Data
               </Button>
             </NuxtLink>
-            <Button variant="outline">
-              <Download class="mr-2 h-4 w-4" />
-              Export Report
+            <Button variant="outline" @click="exportToPDF" :disabled="isExporting">
+              <Loader2 v-if="isExporting" class="mr-2 h-4 w-4 animate-spin" />
+              <Download v-else class="mr-2 h-4 w-4" />
+              {{ isExporting ? 'Generating...' : 'Export Report' }}
             </Button>
           </div>
         </div>
