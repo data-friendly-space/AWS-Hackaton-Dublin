@@ -184,8 +184,9 @@ const services = [
         </CardHeader>
         <CardContent>
           <div class="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-            <pre>cd infrastructure
-cdk bootstrap aws://ACCOUNT_ID/REGION</pre>
+            <pre>cd infra
+npm install
+npx cdk bootstrap aws://ACCOUNT_ID/us-west-2</pre>
           </div>
         </CardContent>
       </Card>
@@ -194,16 +195,16 @@ cdk bootstrap aws://ACCOUNT_ID/REGION</pre>
         <CardHeader>
           <CardTitle class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-goal text-white text-sm">2</span>
-            Build the frontend
+            Deploy backend infrastructure
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div class="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-            <pre>cd frontend
-npm run generate</pre>
+            <pre>cd infra
+npm run cdk deploy</pre>
           </div>
           <p class="text-sm text-muted-foreground mt-3">
-            This creates static files in <code class="bg-muted px-1 rounded">.output/public</code>
+            This deploys VPC, RDS, ECS, S3, and CloudFront in a single ResilioStack
           </p>
         </CardContent>
       </Card>
@@ -212,17 +213,17 @@ npm run generate</pre>
         <CardHeader>
           <CardTitle class="flex items-center gap-2">
             <span class="flex h-6 w-6 items-center justify-center rounded-full bg-goal text-white text-sm">3</span>
-            Deploy infrastructure
+            Build and deploy frontend
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div class="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-            <pre>cd infrastructure
-npm install
-cdk deploy --all</pre>
+            <pre>cd frontend
+npm run generate
+aws s3 sync .output/public s3://resilio-frontend-ACCOUNT_ID-us-west-2 --delete</pre>
           </div>
           <p class="text-sm text-muted-foreground mt-3">
-            This deploys all stacks: VPC, Database, Backend, Frontend
+            Replace ACCOUNT_ID with your AWS account ID
           </p>
         </CardContent>
       </Card>
@@ -274,17 +275,23 @@ python manage.py createsuperuser</pre>
       <Card>
         <CardContent class="pt-6">
           <div class="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-            <pre><span class="text-cyan-400">infrastructure/</span>
+            <pre><span class="text-cyan-400">infra/</span>
 ├── bin/
-│   └── infrastructure.ts      <span class="text-slate-500"># CDK app entry point</span>
+│   └── infra.ts               <span class="text-slate-500"># CDK app entry point</span>
 ├── lib/
-│   ├── vpc-stack.ts           <span class="text-slate-500"># VPC, subnets, security groups</span>
-│   ├── database-stack.ts      <span class="text-slate-500"># RDS PostgreSQL instance</span>
-│   ├── backend-stack.ts       <span class="text-slate-500"># ECS Fargate, ALB, ECR</span>
-│   └── frontend-stack.ts      <span class="text-slate-500"># S3, CloudFront distribution</span>
+│   └── infra-stack.ts         <span class="text-slate-500"># Single stack with all resources</span>
 ├── cdk.json
 ├── package.json
-└── tsconfig.json</pre>
+└── tsconfig.json
+
+<span class="text-cyan-400">ResilioStack Resources:</span>
+• VPC with public/private subnets
+• RDS PostgreSQL with Secrets Manager auto-rotation
+• ECS Fargate cluster with Django backend
+• Application Load Balancer
+• S3 bucket for static frontend hosting
+• CloudFront distribution with API proxy
+• Bedrock Runtime IAM permissions</pre>
           </div>
         </CardContent>
       </Card>

@@ -943,6 +943,66 @@ async function exportToPDF() {
 
     yPos = (doc as any).lastAutoTable.finalY + 10
 
+    // ===== NETWORK GRAPH VISUALIZATION =====
+    // Add the network graph from the canvas
+    if (canvasRef.value) {
+      doc.addPage()
+      yPos = margin
+
+      doc.setFontSize(14)
+      doc.setFont('helvetica', 'bold')
+      doc.setTextColor(0, 110, 51)
+      doc.text('Network Graph Visualization', margin, yPos)
+      yPos += 10
+
+      try {
+        // Get the canvas image data directly
+        const imgData = canvasRef.value.toDataURL('image/png')
+        const pageWidth = doc.internal.pageSize.getWidth()
+        const pageHeight = doc.internal.pageSize.getHeight()
+
+        // Calculate dimensions to fit page
+        const maxWidth = pageWidth - 2 * margin
+        const maxHeight = pageHeight - yPos - margin - 10
+        const canvasWidth = canvasRef.value.width
+        const canvasHeight = canvasRef.value.height
+        const scale = Math.min(maxWidth / canvasWidth, maxHeight / canvasHeight)
+        const imgWidth = canvasWidth * scale
+        const imgHeight = canvasHeight * scale
+
+        // Center the image horizontally
+        const xOffset = (pageWidth - imgWidth) / 2
+        doc.addImage(imgData, 'PNG', xOffset, yPos, imgWidth, imgHeight)
+
+        // Add legend below the image
+        yPos += imgHeight + 10
+        doc.setFontSize(9)
+        doc.setFont('helvetica', 'normal')
+        doc.setTextColor(100, 100, 100)
+
+        // Legend items
+        const legendItems = [
+          { color: [139, 92, 246], label: 'Service Users' },
+          { color: [0, 110, 51], label: 'Service Providers' },
+          { color: [245, 158, 11], label: 'Support Actors' },
+          { color: [239, 68, 68], label: 'Regulatory Bodies' }
+        ]
+
+        let legendX = margin
+        legendItems.forEach((item) => {
+          doc.setFillColor(item.color[0], item.color[1], item.color[2])
+          doc.circle(legendX + 3, yPos, 3, 'F')
+          doc.text(item.label, legendX + 8, yPos + 1)
+          legendX += 45
+        })
+      } catch (e) {
+        console.error('Failed to add network graph to PDF:', e)
+        doc.setFontSize(10)
+        doc.setTextColor(150, 150, 150)
+        doc.text('(Network graph could not be embedded)', margin, yPos + 10)
+      }
+    }
+
     // ===== R4S VISUALIZATION =====
     // Try to include the R4S visualization if available
     if (r4sContainerRef.value) {

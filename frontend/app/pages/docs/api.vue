@@ -266,6 +266,57 @@ Content-Type: application/json</pre>
       </Card>
     </div>
 
+    <!-- AI Visualization Endpoints -->
+    <div class="mb-10">
+      <h2 class="text-2xl font-bold text-goal-dark mb-4">AI Visualization Endpoints</h2>
+      <p class="text-muted-foreground mb-6">
+        These endpoints use Amazon Bedrock with Claude 3.5 Sonnet to generate R4S framework visualizations.
+      </p>
+
+      <Card class="mb-4">
+        <CardHeader>
+          <CardTitle class="flex items-center gap-2">
+            <Badge class="bg-blue-600">GET</Badge>
+            /api/agents/visualize/{slug}/
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p class="text-muted-foreground mb-4">Get cached R4S visualization for a system. Returns cached DOT code if available and data hasn't changed.</p>
+          <Badge variant="outline" class="mb-4">Requires Authentication</Badge>
+          <h4 class="font-medium mb-2">Response (200)</h4>
+          <div class="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+            <pre>{
+  "dot": "digraph RMNCAH { ... }",
+  "cached": true
+}</pre>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card class="mb-4">
+        <CardHeader>
+          <CardTitle class="flex items-center gap-2">
+            <Badge class="bg-green-600">POST</Badge>
+            /api/agents/visualize/{slug}/
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p class="text-muted-foreground mb-4">Force regenerate R4S visualization using Bedrock. Use this after significant data changes.</p>
+          <Badge variant="outline" class="mb-4">Requires Authentication</Badge>
+          <h4 class="font-medium mb-2">Response (200)</h4>
+          <div class="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
+            <pre>{
+  "dot": "digraph RMNCAH { ... }",
+  "cached": false
+}</pre>
+          </div>
+          <p class="text-sm text-muted-foreground mt-3">
+            The DOT code can be rendered client-side using @viz-js/viz (Graphviz WASM).
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+
     <!-- Other Endpoints -->
     <div class="mb-10">
       <h2 class="text-2xl font-bold text-goal-dark mb-4">Other Endpoints</h2>

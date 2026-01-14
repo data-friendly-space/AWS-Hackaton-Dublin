@@ -15,23 +15,23 @@ useHead({
 const features = [
   {
     icon: Network,
-    title: 'System Mapping',
-    description: 'Visualize complex social systems with actors, relationships, and dependencies'
+    title: 'Interactive Network Graph',
+    description: 'Canvas-based visualization with animated relationships - stressed connections pulse to highlight issues'
   },
   {
     icon: Users,
-    title: 'Actor Assessment',
-    description: 'Identify service users, providers, support, and regulatory actors'
+    title: 'R4S Framework Visualization',
+    description: 'AI-generated three-tier diagrams: Supporting Functions, Core Service Delivery, Regulatory & Normative'
   },
   {
     icon: Shield,
-    title: 'Vulnerability Analysis',
-    description: 'Evaluate sensitivity, exposure, and capacity across risk scenarios'
+    title: 'PDF Report Export',
+    description: 'Comprehensive reports with metrics, AI analysis, data tables, and embedded visualizations'
   },
   {
     icon: Zap,
-    title: 'AI-Powered',
-    description: 'Claude Opus 4.5 via Amazon Bedrock for intelligent analysis'
+    title: 'AI-Powered Analysis',
+    description: 'Claude 3.5 Sonnet via Amazon Bedrock for system analysis and visualization generation'
   }
 ]
 

@@ -14,11 +14,11 @@ const awsServices = [
   { service: 'CloudFront', purpose: 'CDN for static frontend + API proxy', category: 'Networking' },
   { service: 'S3', purpose: 'Static website hosting', category: 'Storage' },
   { service: 'ECS Fargate', purpose: 'Containerized Django backend', category: 'Compute' },
-  { service: 'RDS PostgreSQL', purpose: 'Relational database', category: 'Database' },
+  { service: 'RDS PostgreSQL', purpose: 'Relational database with auto-rotation', category: 'Database' },
   { service: 'Application Load Balancer', purpose: 'Backend traffic routing', category: 'Networking' },
   { service: 'VPC', purpose: 'Network isolation (public/private subnets)', category: 'Networking' },
-  { service: 'Secrets Manager', purpose: 'Database credentials storage', category: 'Security' },
-  { service: 'Amazon Bedrock', purpose: 'AI/ML inference (Claude Opus 4.5)', category: 'AI/ML' },
+  { service: 'Secrets Manager', purpose: 'Database credentials with auto-rotation', category: 'Security' },
+  { service: 'Amazon Bedrock', purpose: 'AI/ML inference (Claude 3.5 Sonnet)', category: 'AI/ML' },
 ]
 
 const categoryColors: Record<string, string> = {
@@ -69,7 +69,7 @@ const categoryColors: Record<string, string> = {
 │                              │                                   │
 │                              │   ┌─────────────────────────┐    │
 │                              │   │   Amazon Bedrock        │    │
-│                              │   │   (Claude Opus 4.5)     │    │
+│                              │   │   (Claude 3.5 Sonnet)     │    │
 │                              │   └─────────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘</pre>
         </div>
@@ -97,7 +97,7 @@ const categoryColors: Record<string, string> = {
             <strong>Database</strong> - PostgreSQL in private subnet, accessed only by ECS tasks
           </li>
           <li>
-            <strong>AI Analysis</strong> - Claude Opus 4.5 invoked via Amazon Bedrock for system analysis
+            <strong>AI Analysis</strong> - Claude 3.5 Sonnet invoked via Amazon Bedrock for system analysis
           </li>
         </ol>
       </div>
