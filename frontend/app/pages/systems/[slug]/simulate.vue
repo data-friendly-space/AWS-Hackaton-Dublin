@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SimulationScenario, SimulationEvent } from '~/types/simulation'
 import { EVENT_TYPE_INFO, PRIORITY_INFO } from '~/types/simulation'
+import { ZoomIn, ZoomOut, RotateCcw, LayoutGrid } from 'lucide-vue-next'
 
 const route = useRoute()
 const slug = computed(() => route.params.slug as string)
@@ -658,6 +659,41 @@ function onCanvasWheel(e: WheelEvent) {
   renderCanvas()
 }
 
+// Zoom controls
+function zoomIn() {
+  const canvas = canvasRef.value
+  if (!canvas) return
+  const centerX = canvas.width / 2
+  const centerY = canvas.height / 2
+  const newScale = Math.min(3, scale.value * 1.2)
+  offsetX.value = centerX - (centerX - offsetX.value) * (newScale / scale.value)
+  offsetY.value = centerY - (centerY - offsetY.value) * (newScale / scale.value)
+  scale.value = newScale
+  renderCanvas()
+}
+
+function zoomOut() {
+  const canvas = canvasRef.value
+  if (!canvas) return
+  const centerX = canvas.width / 2
+  const centerY = canvas.height / 2
+  const newScale = Math.max(0.3, scale.value / 1.2)
+  offsetX.value = centerX - (centerX - offsetX.value) * (newScale / scale.value)
+  offsetY.value = centerY - (centerY - offsetY.value) * (newScale / scale.value)
+  scale.value = newScale
+  renderCanvas()
+}
+
+function resetView() {
+  centerView()
+  renderCanvas()
+}
+
+function autoLayout() {
+  runForceLayout()
+  renderCanvas()
+}
+
 // Animation loop
 function startAnimation() {
   if (animationFrameId.value) return
@@ -789,6 +825,38 @@ onMounted(() => {
                   <div class="text-4xl mb-2">📊</div>
                   <p class="text-gray-600 font-medium">Select a scenario to see impact visualization</p>
                 </div>
+              </div>
+
+              <!-- Zoom Controls -->
+              <div class="absolute bottom-4 right-4 flex flex-col gap-2">
+                <button
+                  class="w-10 h-10 rounded-lg bg-white border-2 border-gray-300 shadow-md flex items-center justify-center hover:bg-gray-50 hover:border-green-700 transition-all"
+                  @click="zoomIn"
+                  title="Zoom In"
+                >
+                  <ZoomIn class="w-5 h-5 text-gray-700" />
+                </button>
+                <button
+                  class="w-10 h-10 rounded-lg bg-white border-2 border-gray-300 shadow-md flex items-center justify-center hover:bg-gray-50 hover:border-green-700 transition-all"
+                  @click="zoomOut"
+                  title="Zoom Out"
+                >
+                  <ZoomOut class="w-5 h-5 text-gray-700" />
+                </button>
+                <button
+                  class="w-10 h-10 rounded-lg bg-white border-2 border-gray-300 shadow-md flex items-center justify-center hover:bg-gray-50 hover:border-green-700 transition-all"
+                  @click="resetView"
+                  title="Reset View"
+                >
+                  <RotateCcw class="w-5 h-5 text-gray-700" />
+                </button>
+                <button
+                  class="w-10 h-10 rounded-lg bg-white border-2 border-gray-300 shadow-md flex items-center justify-center hover:bg-gray-50 hover:border-green-700 transition-all"
+                  @click="autoLayout"
+                  title="Auto Layout"
+                >
+                  <LayoutGrid class="w-5 h-5 text-gray-700" />
+                </button>
               </div>
             </div>
 
