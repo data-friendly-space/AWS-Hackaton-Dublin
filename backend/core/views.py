@@ -27,6 +27,21 @@ def health_check(request):
         'database': db_status,
     })
 
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def debug_systems(request):
+    """Debug endpoint to check seeded systems (temporary)."""
+    from .models import System, Actor, Risk, Relationship
+    systems = list(System.objects.values('slug', 'name'))
+    return Response({
+        'system_count': System.objects.count(),
+        'actor_count': Actor.objects.count(),
+        'risk_count': Risk.objects.count(),
+        'relationship_count': Relationship.objects.count(),
+        'systems': systems,
+    })
+
 from .models import (
     System, Risk, Actor, Relationship,
     ComponentAssessment, VulnerabilityAssessment

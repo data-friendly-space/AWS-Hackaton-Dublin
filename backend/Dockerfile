@@ -36,6 +36,9 @@ RUN pip install --no-cache /wheels/*
 # Copy application code
 COPY . .
 
+# Make entrypoint executable
+RUN chmod +x entrypoint.sh
+
 # Collect static files
 RUN python manage.py collectstatic --noinput || true
 
@@ -52,5 +55,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')" || exit 1
 
-# Run gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "config.wsgi:application"]
+# Run entrypoint script (handles migrations, seeding, and gunicorn)
+CMD ["./entrypoint.sh"]

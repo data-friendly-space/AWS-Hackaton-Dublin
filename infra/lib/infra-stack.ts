@@ -14,6 +14,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as appscaling from 'aws-cdk-lib/aws-applicationautoscaling';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as budgets from 'aws-cdk-lib/aws-budgets';
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -190,12 +191,22 @@ export class InfraStack extends cdk.Stack {
     backendService.targetGroup.configureHealthCheck({
       path: '/api/health/',
       healthyHttpCodes: '200',
-      interval: cdk.Duration.seconds(30),
+      interval: cdk.Duration.seconds(15),
       timeout: cdk.Duration.seconds(5),
+      healthyThresholdCount: 2,
+      unhealthyThresholdCount: 2,
     });
+
+    // Reduce deregistration delay for faster deployments (default is 300s)
+    backendService.targetGroup.setAttribute('deregistration_delay.timeout_seconds', '30');
 
     // Grant backend task access to S3 upload bucket
     uploadBucket.grantReadWrite(backendService.taskDefinition.taskRole);
+
+    // Grant backend task access to Bedrock for AI visualizations
+    backendService.taskDefinition.taskRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonBedrockFullAccess')
+    );
 
     // ========================================
     // ECS Auto Scaling
@@ -430,6 +441,79 @@ function handler(event) {
       evaluationPeriods: 3,
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+    });
+
+    // ========================================
+    // AWS Budget - $1000 USD Monthly Limit
+    // ========================================
+    new budgets.CfnBudget(this, 'MonthlyBudget', {
+      budget: {
+        budgetName: 'Resilio-Monthly-Budget',
+        budgetType: 'COST',
+        timeUnit: 'MONTHLY',
+        budgetLimit: {
+          amount: 1000,
+          unit: 'USD',
+        },
+      },
+      notificationsWithSubscribers: [
+        {
+          notification: {
+            notificationType: 'ACTUAL',
+            comparisonOperator: 'GREATER_THAN',
+            threshold: 50,
+            thresholdType: 'PERCENTAGE',
+          },
+          subscribers: [
+            {
+              subscriptionType: 'EMAIL',
+              address: 'keith@marinosoftware.com',
+            },
+          ],
+        },
+        {
+          notification: {
+            notificationType: 'ACTUAL',
+            comparisonOperator: 'GREATER_THAN',
+            threshold: 80,
+            thresholdType: 'PERCENTAGE',
+          },
+          subscribers: [
+            {
+              subscriptionType: 'EMAIL',
+              address: 'keith@marinosoftware.com',
+            },
+          ],
+        },
+        {
+          notification: {
+            notificationType: 'ACTUAL',
+            comparisonOperator: 'GREATER_THAN',
+            threshold: 100,
+            thresholdType: 'PERCENTAGE',
+          },
+          subscribers: [
+            {
+              subscriptionType: 'EMAIL',
+              address: 'keith@marinosoftware.com',
+            },
+          ],
+        },
+        {
+          notification: {
+            notificationType: 'FORECASTED',
+            comparisonOperator: 'GREATER_THAN',
+            threshold: 100,
+            thresholdType: 'PERCENTAGE',
+          },
+          subscribers: [
+            {
+              subscriptionType: 'EMAIL',
+              address: 'keith@marinosoftware.com',
+            },
+          ],
+        },
+      ],
     });
 
     // ========================================

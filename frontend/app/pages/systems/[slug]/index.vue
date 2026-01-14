@@ -55,6 +55,14 @@ const dragStartY = ref(0)
 const visNodes = ref<any[]>([])
 const visEdges = ref<any[]>([])
 
+// R4S Framework Visualization State
+const visualizationMode = ref<'network' | 'r4s'>('network')
+const r4sContainerRef = ref<HTMLDivElement | null>(null)
+const r4sDotCode = ref<string | null>(null)
+const r4sLoading = ref(false)
+const r4sError = ref<string | null>(null)
+const r4sCached = ref(false)
+
 // Actor type colors
 const visColors: Record<string, string> = {
   service_user: '#8B5CF6',
@@ -438,6 +446,98 @@ function autoLayoutVis() {
 function setFilter(filter: string) {
   activeFilter.value = filter
   renderCanvas()
+}
+
+// =========================================================================
+// R4S Framework Visualization
+// =========================================================================
+async function loadR4SVisualization() {
+  if (r4sLoading.value) return
+
+  r4sLoading.value = true
+  r4sError.value = null
+
+  try {
+    const config = useRuntimeConfig()
+
+    // No auth header needed - this endpoint is public
+    const response = await $fetch<{ dot: string; cached: boolean }>(`${config.public.apiBase}/agents/visualize/${slug}/`)
+
+    r4sDotCode.value = response.dot
+    r4sCached.value = response.cached
+
+    await nextTick()
+    await renderR4SVisualization(response.dot)
+  } catch (error: any) {
+    console.error('Failed to load R4S visualization:', error)
+    r4sError.value = error.message || 'Failed to generate visualization'
+  } finally {
+    r4sLoading.value = false
+  }
+}
+
+async function regenerateR4SVisualization() {
+  if (r4sLoading.value) return
+
+  r4sLoading.value = true
+  r4sError.value = null
+
+  try {
+    const config = useRuntimeConfig()
+
+    // No auth header needed - this endpoint is public
+    const response = await $fetch<{ dot: string }>(`${config.public.apiBase}/agents/visualize/${slug}/`, {
+      method: 'POST'
+    })
+
+    r4sDotCode.value = response.dot
+    r4sCached.value = false
+
+    await nextTick()
+    await renderR4SVisualization(response.dot)
+  } catch (error: any) {
+    console.error('Failed to regenerate R4S visualization:', error)
+    r4sError.value = error.message || 'Failed to regenerate visualization'
+  } finally {
+    r4sLoading.value = false
+  }
+}
+
+async function renderR4SVisualization(dotCode: string) {
+  if (!r4sContainerRef.value) return
+
+  try {
+    // Dynamically import viz.js (WASM-based Graphviz)
+    const { instance } = await import('@viz-js/viz')
+    const viz = await instance()
+
+    // Clear previous content
+    r4sContainerRef.value.innerHTML = ''
+
+    // Render DOT to SVG
+    const svg = viz.renderSVGElement(dotCode)
+
+    // Make SVG responsive
+    svg.setAttribute('width', '100%')
+    svg.setAttribute('height', '100%')
+    svg.style.maxWidth = '100%'
+    svg.style.maxHeight = '100%'
+
+    r4sContainerRef.value.appendChild(svg)
+  } catch (error: any) {
+    console.error('Failed to render Graphviz:', error)
+    r4sError.value = 'Failed to render visualization: ' + (error.message || 'Unknown error')
+  }
+}
+
+function switchVisualizationMode(mode: 'network' | 'r4s') {
+  visualizationMode.value = mode
+
+  if (mode === 'r4s' && !r4sDotCode.value && !r4sLoading.value) {
+    loadR4SVisualization()
+  } else if (mode === 'network' && !visualizationInitialized.value) {
+    nextTick(() => tryInitVisualization())
+  }
 }
 
 // Try to initialize visualization - will retry if container not ready
@@ -865,6 +965,24 @@ const categoryColors: Record<string, string> = {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              <!-- Visualization Mode Toggle -->
+              <div class="flex gap-2 mb-4">
+                <button
+                  :class="['px-4 py-2 text-sm font-medium rounded-lg border transition-all', visualizationMode === 'network' ? 'bg-goal text-white border-goal' : 'bg-white text-gray-700 border-gray-300 hover:border-goal']"
+                  @click="switchVisualizationMode('network')"
+                >
+                  Network Graph
+                </button>
+                <button
+                  :class="['px-4 py-2 text-sm font-medium rounded-lg border transition-all', visualizationMode === 'r4s' ? 'bg-goal text-white border-goal' : 'bg-white text-gray-700 border-gray-300 hover:border-goal']"
+                  @click="switchVisualizationMode('r4s')"
+                >
+                  R4S Framework
+                </button>
+              </div>
+
+              <!-- Network Graph Visualization -->
+              <div v-if="visualizationMode === 'network'">
               <!-- Canvas Container -->
               <div ref="canvasContainerRef" class="relative rounded-xl border bg-slate-100 overflow-hidden h-[500px]" @click="!visualizationInitialized && tryInitVisualization()">
                 <!-- Loading state -->
@@ -1018,6 +1136,102 @@ const categoryColors: Record<string, string> = {
                 <div class="flex items-center gap-2">
                   <div class="w-6 h-0.5 rounded border border-dashed border-gray-400"></div>
                   <span class="text-sm">Absent</span>
+                </div>
+              </div>
+              </div>
+
+              <!-- R4S Framework Visualization -->
+              <div v-if="visualizationMode === 'r4s'">
+                <!-- R4S Container -->
+                <div class="relative rounded-xl border bg-white overflow-hidden min-h-[500px]">
+                  <!-- Loading state -->
+                  <div v-if="r4sLoading" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+                    <div class="text-center">
+                      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-goal mx-auto mb-2"></div>
+                      <p class="text-sm text-muted-foreground">Generating R4S visualization...</p>
+                      <p class="text-xs text-muted-foreground mt-1">This may take a few seconds</p>
+                    </div>
+                  </div>
+
+                  <!-- Error state -->
+                  <div v-else-if="r4sError" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+                    <div class="text-center">
+                      <div class="text-red-500 text-4xl mb-2">!</div>
+                      <p class="text-sm text-red-600 font-medium">Failed to generate visualization</p>
+                      <p class="text-xs text-muted-foreground mt-1">{{ r4sError }}</p>
+                      <button
+                        class="mt-4 px-4 py-2 text-sm font-medium text-white bg-goal rounded-lg hover:bg-goal/90"
+                        @click="regenerateR4SVisualization"
+                      >
+                        Try Again
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- SVG Container -->
+                  <div
+                    ref="r4sContainerRef"
+                    class="w-full overflow-auto p-4"
+                    :class="{ 'opacity-0': r4sLoading || r4sError }"
+                  ></div>
+
+                  <!-- Regenerate button -->
+                  <div v-if="r4sDotCode && !r4sLoading && !r4sError" class="absolute top-4 right-4">
+                    <button
+                      class="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:border-goal hover:text-goal transition-all flex items-center gap-1.5"
+                      @click="regenerateR4SVisualization"
+                      title="Regenerate visualization"
+                    >
+                      <RotateCcw class="w-3.5 h-3.5" />
+                      Regenerate
+                    </button>
+                  </div>
+
+                  <!-- Cache indicator -->
+                  <div v-if="r4sCached && !r4sLoading && !r4sError" class="absolute bottom-4 left-4">
+                    <span class="px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded">
+                      Cached visualization
+                    </span>
+                  </div>
+                </div>
+
+                <!-- R4S Legend -->
+                <div class="mt-6">
+                  <h4 class="text-sm font-semibold mb-3">R4S Three-Tier Framework</h4>
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                      <div class="font-medium text-amber-700">Top Tier - Supporting Functions</div>
+                      <div class="text-xs text-amber-600 mt-1">Leadership, HR, Supplies, Financing</div>
+                    </div>
+                    <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div class="font-medium text-green-700">Middle Tier - Core Service Delivery</div>
+                      <div class="text-xs text-green-600 mt-1">National to Community level services</div>
+                    </div>
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div class="font-medium text-red-700">Bottom Tier - Regulatory/Normative</div>
+                      <div class="text-xs text-red-600 mt-1">Regulators, Cultural influences, Service users</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Connection types legend -->
+                <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-0.5 rounded border-b-2 border-dashed" style="border-color: #3B82F6;"></div>
+                    <span class="text-sm">Resources Flow</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-0.5 rounded" style="background-color: #22C55E;"></div>
+                    <span class="text-sm">Patient Referrals</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-0.5 rounded border-b-2 border-dotted" style="border-color: #EF4444;"></div>
+                    <span class="text-sm">Regulation/Oversight</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <div class="w-6 h-0.5 rounded" style="background-color: #6B7280;"></div>
+                    <span class="text-sm">General</span>
+                  </div>
                 </div>
               </div>
 

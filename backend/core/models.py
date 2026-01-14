@@ -300,3 +300,33 @@ class VulnerabilityAssessment(models.Model):
 
     def __str__(self):
         return f"{self.actor.name} @ {self.risk.name}: {self.vulnerability_score} ({self.vulnerability_level})"
+
+
+class SystemVisualization(models.Model):
+    """
+    Cached R4S visualization for a system.
+    Stores generated Graphviz DOT code from Bedrock AI analysis.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    system = models.OneToOneField(
+        System,
+        on_delete=models.CASCADE,
+        related_name='visualization'
+    )
+    dot_code = models.TextField(help_text='Generated Graphviz DOT code')
+    data_hash = models.CharField(
+        max_length=64,
+        help_text='SHA256 hash of system data to detect changes'
+    )
+    generated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'System Visualization'
+        verbose_name_plural = 'System Visualizations'
+
+    def is_stale(self, current_hash: str) -> bool:
+        """Check if cached visualization is outdated."""
+        return self.data_hash != current_hash
+
+    def __str__(self):
+        return f"Visualization for {self.system.name}"
