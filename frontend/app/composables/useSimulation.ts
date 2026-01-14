@@ -80,10 +80,8 @@ export function useSimulation(systemSlug: Ref<string>) {
     for (const event of sortedEvents) {
       if (event.day > day) break
 
-      // Track the most recent event as active
-      if (event.day === Math.floor(day)) {
-        state.activeEvent = event
-      }
+      // Track the most recent event as active (keeps updating to the latest one that has occurred)
+      state.activeEvent = event
 
       // Apply impacts
       for (const impact of event.impacts) {
